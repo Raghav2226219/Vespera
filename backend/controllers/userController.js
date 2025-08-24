@@ -1,4 +1,7 @@
 const prisma = require("../config/db");
+const bcrypt = require("bcrypt");
+
+const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
 const registerUser = async (req, res) => {
   try {
@@ -16,17 +19,23 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists!!" });
     }
 
+    const hashedPassword = await bcrypt.hash(password,10);
+
     const newUser = await prisma.User.create({
       data: {
         email,
         name,
         phonenumber,
-        password,
+        password : hashedPassword,
         role,
       },
     });
 
-    res.status(201).json(newUser);
+    res.status(201).json({
+      message : "Registration Successful",
+      user : { id : newUser.id, email : newUser.email, name : newUser.name, role : newUser.role }
+    });
+    
   } catch (err) {
     console.error("Error Registering user: ", err);
     res.status(500).json({ message: "Internal server error" });
