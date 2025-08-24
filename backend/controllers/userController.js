@@ -82,9 +82,13 @@ const loginUser = async (req, res) => {
       message: "Welcome Back",
       accessToken,
       refreshToken: refreshTokenValue,
-      user : { id : user.id, email : user.email, name : user.name, role : user.role}
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     });
-
   } catch (err) {
     console.error("Login failed: ", err);
     res.status(500).json({ message: "Some error occured" });
@@ -94,26 +98,52 @@ const loginUser = async (req, res) => {
 const handleRefreshToken = async (req, res) => {
   const { refreshToken } = req.body;
 
-  if( !refreshToken ){
+  if (!refreshToken) {
     return res.status(401).json({ message: "No refresh token provided" });
   }
 
-  try{
-    const decoded = jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    const user = await prisma.User.findUnique({ where : { id : decoded.id}});
+    const user = await prisma.User.findUnique({ where: { id: decoded.id } });
 
-    if( !user || user.refreshToken !== refreshToken){
-      return res.status(403).json({ message : "Invalid refresh token"});
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     const newAccessToken = generateAccessToken(user);
 
-    res.json({accessToken : newAccessToken});
-  }catch(err){
-    console.error("Error refreshing token: ",err);
-    res.status(403).json({ message : "Invalid or expired refresh token"});
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    console.error("Error refreshing token: ", err);
+    res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 };
 
-module.exports = { registerUser, loginUser, refreshToken: handleRefreshToken };
+const logoutUser = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(404).json({ message: "No refresh token provided" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    } catch (err) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    await prisma.User.update({
+      where: { id: decoded.id },
+      data: { refreshToken: null },
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    console.error("Logout failed: ",err);
+    res.status(500).json({ message : "Some error occured"});
+  }
+};
+
+module.exports = { registerUser, loginUser, refreshToken: handleRefreshToken, logoutUser};
