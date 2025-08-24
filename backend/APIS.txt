@@ -1,0 +1,22 @@
+http://localhost:5896/api/user/register
+
+{
+  "email" : "sample@gmail.com",
+  "name" : "Sam",
+  "phonenumber" : "7898789850",
+  "password" : "1234",
+  "role" : "Owner"
+}
+
+http://localhost:5896/api/user/login
+
+{
+  "email" : "sample@gmail.com",
+  "password" : "1234"
+}
+
+http://localhost:5896/api/user/refresh
+
+{
+    "refreshToken" : "Token val"
+}
