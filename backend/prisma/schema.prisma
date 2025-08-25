@@ -16,10 +16,32 @@ model User {
   role         Role     @default(Viewer)
   createdAt    DateTime @default(now())
   refreshToken String?
+
+  Profile Profile?
 }
 
 enum Role {
   Owner
   Editor
   Viewer
+}
+
+model Profile{
+  id Int @id @default(autoincrement())
+  userId Int @unique
+  name String
+  phoneNumber String
+  dob DateTime?
+  gender Gender
+  address String?
+  bio String?
+  profilePic String?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum Gender{
+  Male
+  Female
+  Other
 }
