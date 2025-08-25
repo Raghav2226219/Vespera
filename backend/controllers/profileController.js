@@ -53,74 +53,101 @@ const getProfile = async (req, res) => {
     return res.json(profile);
   } catch (err) {
     console.error("Error fetching details: ", err);
-    res.status(500).json({ message: "Internal server error"});
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const updateProfile = async (req,res) => {
-    try{
-        const userId = req.user.id;
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-        const {name, phoneNumber, dob, gender, address, bio, profilePic } = req.body;
+    const { name, phoneNumber, dob, gender, address, bio, profilePic } =
+      req.body;
 
-        const profile = await prisma.Profile.update({
-            where: {userId},
-            data: {
-                name,
-                phoneNumber,
-                dob : dob ? new Date(dob) : null,
-                gender,
-                address,
-                bio,
-                profilePic
-            }
-        });
+    const profile = await prisma.Profile.update({
+      where: { userId },
+      data: {
+        name,
+        phoneNumber,
+        dob: dob ? new Date(dob) : null,
+        gender,
+        address,
+        bio,
+        profilePic,
+      },
+    });
 
-        return res.json({ message: "Profile updated successfully", profile});
-
-    }catch(err){
-        console.error("Error updating profile : ", err);
-        res.status(500).json({ message: "Internal server error"});
-    }
+    return res.json({ message: "Profile updated successfully", profile });
+  } catch (err) {
+    console.error("Error updating profile : ", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
-const deleteProfile = async (req,res) => {
-    try{
-
-        if(!req.user){
-            return res.status(401).json({ message: "Not authorized"});
-        }
-
-        const targetUserId = req.user.id;
-
-        if(req.params.userId && req.user.role === "Owner"){
-            const parsed = parseInt(req.params.userId, 10);
-
-            if(!Number.isInteger(parsed)){
-                return res.status(400).json({message: "Invalid userId parameter "});
-            }
-
-            targetUserId = parsed;
-        }
-
-        const profile = await prisma.Profile.findUnique({
-            where : { userId: targetUserId}
-        });
-
-        if(!profile){
-            return res.status(404).json({message: "Profile not found!"});
-        }
-
-        await prisma.Profile.delete({
-            where : {userId : targetUserId}
-        });
-
-        return res.status(200).json({ message : "Profile deleted successfully"});
-
-    }catch(err){
-        console.error("Error deleting profile: ",err);
-        res.status(500).json({message : "Internal server error"});
+const deleteProfile = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized" });
     }
-}
 
-module.exports = {createProfile, getProfile, updateProfile, deleteProfile};
+    const targetUserId = req.user.id;
+
+    if (req.params.userId && req.user.role === "Owner") {
+      const parsed = parseInt(req.params.userId, 10);
+
+      if (!Number.isInteger(parsed)) {
+        return res.status(400).json({ message: "Invalid userId parameter " });
+      }
+
+      targetUserId = parsed;
+    }
+
+    const profile = await prisma.Profile.findUnique({
+      where: { userId: targetUserId },
+    });
+
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found!" });
+    }
+
+    await prisma.Profile.delete({
+      where: { userId: targetUserId },
+    });
+
+    return res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting profile: ", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getAllProfiles = async (req, res) => {
+  try {
+    const profiles = await prisma.Profile.findMany({
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        phoneNumber: true,
+        dob: true,
+        gender: true,
+        address: true,
+        bio: true,
+        profilePic: true
+      },
+    });
+
+    res.status(200).json({ profiles });
+  } catch (err) {
+    console.error("Error fetching all profiles: ", err);
+    res.status(500).json({ message: "Intrnal server error " });
+  }
+};
+
+module.exports = {
+  createProfile,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+  getAllProfiles,
+};

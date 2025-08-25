@@ -49,3 +49,5 @@ http://localhost:5896/api/profile/update (put)
 }
 
 http://localhost:5896/api/profile/delete (delete)
+
+http://localhost:5896/api/profile/all (get)
