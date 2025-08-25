@@ -1,4 +1,4 @@
-http://localhost:5896/api/user/register
+http://localhost:5896/api/user/register (post)
 
 {
   "email" : "sample@gmail.com",
@@ -8,15 +8,44 @@ http://localhost:5896/api/user/register
   "role" : "Owner"
 }
 
-http://localhost:5896/api/user/login
+http://localhost:5896/api/user/login (post)
 
 {
   "email" : "sample@gmail.com",
   "password" : "1234"
 }
 
-http://localhost:5896/api/user/refresh
+http://localhost:5896/api/user/refresh (post)
 
 {
     "refreshToken" : "Token val"
 }
+
+http://localhost:5896/api/user/logout (post)
+
+{
+    "refreshToken" : "Token val"
+}
+
+http://localhost:5896/api/profile/create (post)
+
+{
+  "name": "Sam",
+  "phoneNumber": "7898789850",
+  "dob": "2002-08-20T00:00:00.000Z",
+  "gender": "Male",
+  "address": "Chandigarh, India",
+  "bio": "Learning MERN stack 🚀",
+  "profilePic": "https://example.com/avatar.png"
+}
+
+http://localhost:5896/api/profile/me (get)
+
+http://localhost:5896/api/profile/update (put)
+
+{
+  "bio": "Full-stack developer in progress 💻",
+  "address": "Delhi, India"
+}
+
+http://localhost:5896/api/profile/delete (delete)
