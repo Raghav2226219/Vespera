@@ -18,6 +18,9 @@ model User {
   refreshToken String?
 
   Profile Profile?
+
+  BoardMember BoardMember[]
+  Board Board[]
 }
 
 enum Role {
@@ -44,4 +47,48 @@ enum Gender{
   Male
   Female
   Other
+}
+
+model Board {
+  id Int @id @default(autoincrement())
+  title String
+  description String?
+  isArchived Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId Int
+  owner User @relation(fields: [ownerId], references: [id])
+
+  members BoardMember[]
+  invites Invite[]
+}
+
+model BoardMember{
+  id Int @id @default(autoincrement())
+  boardId Int
+  userId Int
+  role Role @default(Viewer)
+  joinedAt DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([boardId, userId])
+}
+
+model Invite {
+  id Int @id @default(autoincrement())
+  boardId Int
+  email String
+  role Role @default(Viewer)
+  tokenHash String
+  expiresAt DateTime
+  used Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@index([boardId])
+  @@index([email])
 }
