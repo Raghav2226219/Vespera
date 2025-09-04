@@ -5,7 +5,7 @@ const {getBoardDetails, createBoard, updateBoard, deleteBoard} = require("../con
 
 const router = express.Router();
 
-router.post("/", protect, createBoard);
+router.post("/create", protect, createBoard);
 
 router.get("/:boardId", protect, checkBoardMember, getBoardDetails);
 
