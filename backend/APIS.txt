@@ -72,3 +72,16 @@ http://localhost:5896/api/board/1 (put)
 }
 
 http://localhost:5896/api/board/1 (delete)
+
+http://localhost:5896/api/invites/1 (post) ( for creating invite )
+
+{
+  "email": "raghav19092004@gmail.com",
+  "role": "Viewer"
+}
+
+http://localhost:5896/api/invites/accept (post) (must be accepted from different accout i.e, the user who made the invite should not use his login token in authorization )
+
+{
+  "token" : "form mail " till frontent is not made
+}
