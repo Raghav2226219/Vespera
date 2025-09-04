@@ -1,9 +1,11 @@
 const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
 const {checkBoardMember, authorizeBoardRoles } = require("../middleware/boardAuth");
-const {getBoardDetails, createBoard, updateBoard, deleteBoard} = require("../controllers/boardController");
+const {getAllBoards, getBoardDetails, createBoard, updateBoard, deleteBoard} = require("../controllers/boardController");
 
 const router = express.Router();
+
+router.get("/all", protect, getAllBoards);
 
 router.post("/create", protect, createBoard);
 

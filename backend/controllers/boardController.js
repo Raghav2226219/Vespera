@@ -1,5 +1,39 @@
 const prisma = require("../config/db");
 
+const getAllBoards = async (req, res) => {
+  try {
+    const userId = req.user.Id;
+
+    const boards = await prisma.Board.findMany({
+      where: {
+        members: {
+          some: { userId },
+        },
+      },
+      include: {
+        members: {
+          select: {
+            id: true,
+            role: true,
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
+        owner: {
+          select: { id: true, name: true, email: true },
+        },
+      }
+    });
+
+    res.json({ boards });
+
+  } catch (err) {
+    console.error("Get boards error: ", err);
+    res.status(500).json({ message: "Server error"});
+  }
+};
+
 const getBoardDetails = async (req, res) => {
   try {
     const boardId = parseInt(req.params.boardId);
@@ -37,18 +71,28 @@ const createBoard = async (req, res) => {
       return res.status(400).json({ message: "Title is required" });
     }
 
+    const existingBoard = await prisma.board.findFirst({
+      where: { ownerId: userId, title },
+    });
+
+    if (existingBoard) {
+      return res
+        .status(400)
+        .json({ message: "Board already exists with similar title" });
+    }
+
     const board = await prisma.Board.create({
-        data : {
-            title,
-            description,
-            ownerId: userId,
-            members : {
-                create : {
-                    userId,
-                    role: "Owner"
-                }
-            }
+      data: {
+        title,
+        description,
+        ownerId: userId,
+        members: {
+          create: {
+            userId,
+            role: "Owner",
+          },
         },
+      },
     });
 
     res.status(201).json(board);
@@ -59,40 +103,43 @@ const createBoard = async (req, res) => {
 };
 
 const updateBoard = async (req, res) => {
-    try{
-        const boardId = parseInt(req.params.boardId);
-        const { title, description} = req.body;
+  try {
+    const boardId = parseInt(req.params.boardId);
+    const { title, description } = req.body;
 
-        const updatboard = await prisma.board.update({
-            where : {id : boardId},
-            data : {
-                title,
-                description
-            },
-        });
+    const updatboard = await prisma.board.update({
+      where: { id: boardId },
+      data: {
+        title,
+        description,
+      },
+      select: {
+        id: true,
+        title : true,
+        description : true
+      }
+    });
 
-        res.json(updatboard);
-
-    }catch(err){
-        console.error("Error updating board: ", err);
-        res.status(500).json({ message : "Server error"});
-    }
+    res.json(updatboard);
+  } catch (err) {
+    console.error("Error updating board: ", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 const deleteBoard = async (req, res) => {
-    try{
-        const boardId = parseInt(req.params.boardId)
+  try {
+    const boardId = parseInt(req.params.boardId);
 
-        await prisma.Board.delete({
-            where : {id : boardId},
-        });
+    await prisma.Board.delete({
+      where: { id: boardId },
+    });
 
-        res.json({ message : "Board deleted successfully"});
-
-    }catch(err){
-        console.error("Error deleting board", err);
-        res.status(500).json({ message: "Server error"});
-    }
+    res.json({ message: "Board deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting board", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-module.exports = {getBoardDetails, createBoard, updateBoard, deleteBoard};
+module.exports = { getAllBoards, getBoardDetails, createBoard, updateBoard, deleteBoard };
