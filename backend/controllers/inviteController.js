@@ -150,4 +150,71 @@ const validateInvite = async (req, res) => {
     }
 };
 
-module.exports = { createInvite, acceptInvite, validateInvite};
+const getPendingInvites = async (req, res) => {
+    try{
+        const boardId = parseInt(req.params.boardId);
+        const userId = req.user.id;
+
+        if(!boardId){
+            return res.status(400).json({ message : "Board ID required"});
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1)*limit;
+
+        const membership = await prisma.BoardMember.findUnique({
+            where : {
+                boardId_userId : {boardId, userId}
+            },
+        });
+
+        if(!membership){
+            return res.status(403).json({ message : "Access denied: not a board member"});
+        }
+
+        if(!["Owner", "Admin"].includes(membership.role)){
+            return res.status(403).json({ message : "Access denied : Only Admin/Owner can access"});
+        }
+
+        const total = await prisma.invite.count({
+            where : {
+                boardId,
+                used : false,
+                expiresAt : { gt : new Date()},
+            },
+        });
+
+        const invites = await prisma.invite.findMany({
+            where : {
+                boardId,
+                used : false,
+                expiresAt :{ gt : new Date()},
+            },
+            select : {
+                email : true,
+                role : true,
+                expiresAt : true
+            },
+            orderBy : {expiresAt : "asc"},
+            skip,
+            take : limit,
+        });
+
+        res.status(200).json({
+            success : true,
+            page,
+            limit,
+            total,
+            totalPages : Math.ceil(total/limit),
+            invites,
+        });
+
+    }catch(err){
+        console.error("Error fetching invites : ", err);
+        res.status(500).json({ message : "Server error"});
+        
+    }
+};
+
+module.exports = { createInvite, acceptInvite, validateInvite, getPendingInvites};

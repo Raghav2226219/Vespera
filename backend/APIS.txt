@@ -85,3 +85,6 @@ http://localhost:5896/api/invites/accept (post) (must be accepted from different
 {
   "token" : "form mail " till frontent is not made
 }
+
+
+GET http://localhost:5896/api/invites/validate?token=PASTE_TOKEN_HERE (get) (to check validation of the link)
