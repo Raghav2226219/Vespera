@@ -74,16 +74,9 @@ const acceptInvite = async (req, res) => {
             return res.status(400).json({ message : "Invalid or expired invite"});
         }
 
-         console.log("Invite matched:", invite);
-    console.log("User trying to accept:", userId);
-
         const existing = await prisma.BoardMember.findUnique({
             where : { boardId_userId : { boardId : invite.boardId, userId}},
         });
-
-        
-    console.log("Existing membership:", existing);
-
 
         if(existing){
             return res.status(400).json({ message : "You are already a member of this board"});
@@ -110,4 +103,51 @@ const acceptInvite = async (req, res) => {
     }
 };
 
-module.exports = { createInvite, acceptInvite}
+const validateInvite = async (req, res) => {
+    try{
+
+        const token = req.query.token;
+
+        if(!token){
+            return res.status(400).json({ valid : false, reason : "Invite Token required"});
+        }
+
+        const invites = await prisma.Invite.findMany({
+            where: {
+                used : false,
+                expiresAt : { gt : new Date()},
+            },
+            include : { board : true},
+        });
+
+        let invite = null;
+
+        for ( const inv of invites){
+            const match = await bcrypt.compare(token, inv.tokenHash);
+
+            if(match) { 
+                invite = inv;
+                break;
+            }
+        }
+
+        if (!invite){
+            return res.status(400).json({ valid : false, reason : "Invalid or expired invite"});
+        }
+
+        res.json({
+            valid : true,
+            boardId : invite.boardId,
+            boardTitle : invite.board.title,
+            email : invite.email,
+            role : invite.role,
+            expiresAt : invite.existingAt,
+        });
+
+    }catch(err){
+        console.error("Error validating invite: ", err);
+        res.status(500).json( {valid : false, reason : "Server error"});
+    }
+};
+
+module.exports = { createInvite, acceptInvite, validateInvite};
