@@ -87,4 +87,6 @@ http://localhost:5896/api/invites/accept (post) (must be accepted from different
 }
 
 
-GET http://localhost:5896/api/invites/validate?token=PASTE_TOKEN_HERE (get) (to check validation of the link)
+http://localhost:5896/api/invites/validate?token=PASTE_TOKEN_HERE (get) (to check validation of the link)
+
+http://localhost:5896/api/invites/4/admin?page=1&limit=5 (get) (to get all the pending invites of a board for admin/owner)
