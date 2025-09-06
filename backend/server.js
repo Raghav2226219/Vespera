@@ -2,11 +2,15 @@ require("dotenv").config();
 
 const express = require("express");
 const app = express();
+const cron = require("node-cron");
+const prisma = require("./config/db");
 
 app.use(express.json());
 
 const userRoute = require("./routes/userRoute");
 const profileRoute = require("./routes/profileRoute");
+const boardRoute = require("./routes/boardRoute");
+const inviteRoute = require("./routes/inviteRoute");
 
 app.get("/", (req, res) => {
   res.send("API is running");
@@ -14,6 +18,28 @@ app.get("/", (req, res) => {
 
 app.use("/api/user", userRoute);
 app.use("/api/profile", profileRoute);
+app.use("/api/board", boardRoute);
+app.use("/api/invites", inviteRoute);
+
+cron.schedule("0 * * * *", async () => {
+  try{
+    const cutoff = new Date(Date.now() - 1 * 60 * 60 * 1000);
+    const deleted  = await prisma.invite.deleteMany({
+      where : {
+        cancelled : true,
+        cancelledAt : { lt : cutoff},
+      },
+    });
+
+    if (deleted.count > 0){
+      console.log(` Cleaned up ${deleted.count} cancelled invites`);
+    }
+
+  }catch(err){
+    console.error("Error pruning cancelled invites: ", err);
+    
+  }
+})
 
 // Start server
 const PORT = process.env.PORT || 5000;
