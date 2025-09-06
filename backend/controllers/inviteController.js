@@ -7,9 +7,16 @@ const createInvite = async (req, res) => {
   try {
     const { email, role } = req.body;
     const { boardId } = req.params;
+    const inviterRole = req.BoardMember.role;
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
+    }
+
+    if(inviterRole !== "Owner" && inviterRole !== "Admin"){
+      return res.status(403).json({
+        message : "Only Owner or Admin can send invites"
+      });
     }
 
     const rawToken = generateInviteToken();
