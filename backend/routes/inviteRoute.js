@@ -13,7 +13,7 @@ router.get("/validate", validateInvite);
 
 router.get("/:boardId/admin", protect, checkBoardMember, getPendingInvites);
 
-router.delete("/:inviteId",protect,cancelInvite);
+router.delete("/:inviteId/cancel",protect,cancelInvite);
 
 
 module.exports = router;
