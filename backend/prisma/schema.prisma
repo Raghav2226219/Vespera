@@ -89,6 +89,8 @@ model Invite {
   expiresAt DateTime
   used Boolean @default(false)
   createdAt DateTime @default(now())
+  cancelled Boolean @default(false)
+  cancelledAt DateTime?
 
   board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
