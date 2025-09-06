@@ -57,7 +57,19 @@ const acceptInvite = async (req, res) => {
     const invites = await prisma.Invite.findMany({
       where: {
         used: false,
+        cancelled : false,
         expiresAt: { gt: new Date() },
+      },
+      include : {
+        board : {
+          include : {
+            members: {
+              include : {
+                user:true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -73,6 +85,37 @@ const acceptInvite = async (req, res) => {
 
     if (!invite) {
       return res.status(400).json({ message: "Invalid or expired invite" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where : { id : userId},
+    });
+
+    if( !user || user.email !== invite.email){
+
+      await prisma.invite.update({
+        where : { id : invite.id},
+        data : { cancelled : true},
+      });
+
+      const owner = invite.board.members.find( m => m.role === "Owner");
+
+      if(owner && owner.user?.email){
+        await sendEmail({
+          to : owner.user.email,
+          subject : "Vespera - Suspicious Invite  Attempt Blocked",
+          html:`
+          <p>Hello,</p>
+          <p>Someone tried to accept an invite to <strong>${invite.board.title}</strong> that was not ment for them</p>
+          <p>The invite for <strong>${invite.email}</strong> has now been <b>cancelled</b> for safety.</p>
+          <p>If this was unexpected, please consider inviting the correct user again.</p>
+          `,
+        });
+      }
+
+      return res.status(403).json({
+        message : "This invite was not for your account and has been cancelled",
+      })
     }
 
     const existing = await prisma.BoardMember.findUnique({
