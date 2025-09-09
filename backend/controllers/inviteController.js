@@ -7,7 +7,7 @@ const createInvite = async (req, res) => {
   try {
     const { email, role } = req.body;
     const { boardId } = req.params;
-    const inviterRole = req.BoardMember.role;
+    const inviterRole = req.boardMember.role;
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
@@ -41,6 +41,16 @@ const createInvite = async (req, res) => {
             ${link}
             This link expires in 7 days.
             `,
+    });
+
+    prisma.InviteLog.create({
+      data:{
+        boardId: parseInt(boardId),
+        inviteId : invite.id,
+        inviterId: req.user.id,
+        inviteeEmail : invite.email,
+        action : "SENT",
+      },
     });
 
     res
@@ -105,6 +115,16 @@ const acceptInvite = async (req, res) => {
         data : { cancelled : true},
       });
 
+      await prisma.inviteLog.create({
+        data : {
+          boardId : invite.boardId,
+          inviteId: invite.id,
+          inviterId : invite.board.ownerId,
+          inviteeEmail : invite.email,
+          action : "SUSPICIOUS",
+        },
+      });
+
       const owner = invite.board.members.find( m => m.role === "Owner");
 
       if(owner && owner.user?.email){
@@ -146,6 +166,17 @@ const acceptInvite = async (req, res) => {
     await prisma.invite.update({
       where: { id: invite.id },
       data: { used: true },
+    });
+
+    await prisma.inviteLog.create({
+      data:{
+        boardId : invite.boardId,
+        inviteId : invite.id,
+        inviterId: invite.board.ownerId,
+        acceptedById : userId,
+        inviteeEmail: invite.email,
+        action: "ACCEPTED",
+      },
     });
 
     res.json({
@@ -307,6 +338,16 @@ const cancelInvite = async (req, res) => {
       data: {
         cancelled: true,
         cancelledAt: new Date(),
+      },
+    });
+
+    await prisma.inviteLog.create ({
+      data: {
+        boardId : invite.boardId,
+        inviteId : invite.id,
+        inviterId : req.user.id,
+        inviteeEmail : invite.email,
+        action : "CANCELLED",
       },
     });
 
