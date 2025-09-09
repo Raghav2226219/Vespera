@@ -1,15 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import Dashboard from "./pages/Dashboard";
+// import BoardDetails from "./pages/BoardDetails";
+// import Profile from "./pages/Profile";
 import './App.css'
 
 function App() {
 
   return (
     <>
-      <div className="h-screen flex items-center justify-center bg-blue-600 text-white text-4xl font-bold">
-      🚀 Tailwind v3 is working!
-    </div>
+      <Router>
+        <Routes>
+          {/* Auth Routes */}
+          <Route path="/login" element={<Login/>}/>
+          <Route path="/register" element={<Register/>}/>
+
+          {/* Protected Routes */}
+          <Route path="/" element={<Dashboard/>}/>
+          {/* <Route path="/boards/:id" element={<BoardDetails/>}/> */}
+          {/* <Route path="/profile" element={<Profile/>}/> */}
+        </Routes>
+      </Router>
     </>
   )
 }
