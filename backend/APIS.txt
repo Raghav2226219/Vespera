@@ -93,3 +93,5 @@ http://localhost:5896/api/invites/4/admin?page=1&limit=5 (get) (to get all the p
 
 
 http://localhost:5896/api/invites/17/cancel (delete) (for cancelling invite just required authorization in header)
+
+http://localhost:5896/api/invite-history/7
