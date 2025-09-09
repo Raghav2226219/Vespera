@@ -43,12 +43,12 @@ const createInvite = async (req, res) => {
             `,
     });
 
-    prisma.InviteLog.create({
+    await prisma.inviteLog.create({
       data:{
         boardId: parseInt(boardId),
         inviteId : invite.id,
         inviterId: req.user.id,
-        inviteeEmail : invite.email,
+        inviteeEmail: invite.email,
         action : "SENT",
       },
     });
