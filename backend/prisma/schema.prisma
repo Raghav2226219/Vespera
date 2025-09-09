@@ -18,9 +18,11 @@ model User {
   refreshToken String?
 
   Profile Profile?
-
   BoardMember BoardMember[]
   Board Board[]
+
+  inviterLogs InviteLog[] @relation("InviterLogs")
+  acceptedLogs InviteLog[] @relation("AcceptedLogs")
 }
 
 enum Role {
@@ -63,6 +65,7 @@ model Board {
 
   members BoardMember[]
   invites Invite[]
+  logs InviteLog[]
 
   @@unique([ownerId, title])
 }
@@ -93,7 +96,36 @@ model Invite {
   cancelledAt DateTime?
 
   board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  logs InviteLog[]
 
   @@index([boardId])
   @@index([email])
+}
+
+model InviteLog {
+  id Int @id @default(autoincrement())
+  boardId Int
+  inviteId Int
+  inviterId Int
+  acceptedById Int?
+  inviteeEmail String
+  action InviteAction
+  createdAt DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id])
+  invite Invite @relation(fields: [inviteId], references: [id])
+  inviter User @relation("InviterLogs",fields: [inviterId], references: [id])
+  acceptedBy User? @relation("AcceptedLogs", fields: [acceptedById], references: [id])
+
+  @@index([boardId])
+  @@index([inviterId])
+  @@index([acceptedById])
+}
+
+enum InviteAction{
+  SENT
+  ACCEPTED
+  CANCELLED
+  SUSPICIOUS
+  PENDING
 }
