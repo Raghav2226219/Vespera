@@ -55,7 +55,7 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Enter all fields!!" });
     }
 
-    const user = await prisma.User.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: email },
     });
 
