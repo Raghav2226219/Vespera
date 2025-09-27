@@ -15,9 +15,30 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* Protected */}
-        <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-        <Route path="/boards/:id" element={<PrivateRoute><BoardDetail /></PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/boards/:id"
+          element={
+            <PrivateRoute>
+              <BoardDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

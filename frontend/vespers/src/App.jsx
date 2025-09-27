@@ -1,4 +1,4 @@
-import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
@@ -7,23 +7,22 @@ import Dashboard from "./pages/Dashboard";
 // import './App.css'
 
 function App() {
-
   return (
     <>
       <Router>
         <Routes>
           {/* Auth Routes */}
-          <Route path="/login" element={<Login/>}/>
-          <Route path="/register" element={<Register/>}/>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Protected Routes */}
-          <Route path="/dashboard" element={<Dashboard/>}/>
+          <Route path="/dashboard" element={<Dashboard />} />
           {/* <Route path="/boards/:id" element={<BoardDetails/>}/> */}
           {/* <Route path="/profile" element={<Profile/>}/> */}
         </Routes>
       </Router>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

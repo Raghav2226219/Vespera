@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -31,8 +28,14 @@ module.exports = {
           "50%": { transform: "translateY(-10px) rotate(1deg)" },
         },
         glow: {
-          "0%, 100%": { opacity: 0.8, filter: "drop-shadow(0 0 15px rgba(16,185,129,0.4))" },
-          "50%": { opacity: 1, filter: "drop-shadow(0 0 30px rgba(34,211,238,0.5))" },
+          "0%, 100%": {
+            opacity: 0.8,
+            filter: "drop-shadow(0 0 15px rgba(16,185,129,0.4))",
+          },
+          "50%": {
+            opacity: 1,
+            filter: "drop-shadow(0 0 30px rgba(34,211,238,0.5))",
+          },
         },
       },
       animation: {
