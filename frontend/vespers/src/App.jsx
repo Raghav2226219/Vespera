@@ -4,7 +4,7 @@ import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
 // import BoardDetails from "./pages/BoardDetails";
 // import Profile from "./pages/Profile";
-import './App.css'
+// import './App.css'
 
 function App() {
 
@@ -17,7 +17,7 @@ function App() {
           <Route path="/register" element={<Register/>}/>
 
           {/* Protected Routes */}
-          <Route path="/" element={<Dashboard/>}/>
+          <Route path="/dashboard" element={<Dashboard/>}/>
           {/* <Route path="/boards/:id" element={<BoardDetails/>}/> */}
           {/* <Route path="/profile" element={<Profile/>}/> */}
         </Routes>
