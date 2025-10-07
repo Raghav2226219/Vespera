@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import NotificationPanel from "../components/NotificationPanel";
-import {
-  LogOut,
-  Bell,
-  User,
-  LayoutDashboard,
-  ClipboardList,
-  PlusCircle,
-  Upload,
-  Menu,
-} from "lucide-react";
+import LeftSidebar from "../components/LeftSidebar";
+import { LogOut, Bell, User, LayoutDashboard, Menu } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,7 +12,6 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // ✅ Moved showNotifications outside useEffect (it was wrongly inside before)
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("accessToken");
@@ -56,13 +47,14 @@ const Dashboard = () => {
         className="w-full backdrop-blur-xl bg-white/5 border-b border-white/10 px-6 py-4 flex justify-between items-center shadow-lg z-50"
       >
         <div className="flex items-center gap-3">
-          {/* Mobile Menu Toggle */}
+          {/* 📱 Mobile Menu Toggle */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden text-white/80 hover:text-emerald-400 transition"
+            className="text-white/80 hover:text-emerald-400 transition"
           >
             <Menu className="w-6 h-6" />
           </button>
+
           <h1 className="text-2xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">
             <LayoutDashboard className="w-6 h-6" />
             Hi, {user?.name || "User"} 👋
@@ -94,32 +86,21 @@ const Dashboard = () => {
       </motion.header>
 
       <div className="flex flex-1 relative">
-        {/* 🌙 Sidebar */}
-        <motion.aside
-          initial={{ x: -80, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className={`fixed md:static z-40 top-0 left-0 h-full md:h-auto w-64 bg-[rgba(255,255,255,0.05)] backdrop-blur-xl border-r border-white/10 p-6 space-y-4 transform transition-transform duration-500 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }`}
-        >
-          <h2 className="text-lg font-semibold mb-4 text-emerald-300">Menu</h2>
+        {/* 🌙 Left Sidebar */}
+        <LeftSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-          <button className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(255,255,255,0.06)] hover:bg-emerald-500/20 transition-all duration-300">
-            <PlusCircle className="w-5 h-5 text-emerald-300" /> New Board
-          </button>
-
-          <button className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(255,255,255,0.06)] hover:bg-emerald-500/20 transition-all duration-300">
-            <Upload className="w-5 h-5 text-emerald-300" /> Import Tasks
-          </button>
-
-          <button
-            onClick={() => navigate("/boards")}
-            className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(255,255,255,0.06)] hover:bg-emerald-500/20 transition-all duration-300"
-          >
-            <ClipboardList className="w-5 h-5 text-emerald-300" /> View Boards
-          </button>
-        </motion.aside>
+        {/* 🪩 Backdrop Overlay (for mobile) */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+        </AnimatePresence>
 
         {/* 🌈 Main Section */}
         <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10 relative">
@@ -155,7 +136,7 @@ const Dashboard = () => {
             </motion.div>
           </motion.div>
 
-          {/* Ambient background glow */}
+          {/* 💫 Ambient Background Glow */}
           <motion.div
             animate={{ x: [0, 40, -40, 0], y: [0, -30, 30, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
@@ -174,9 +155,15 @@ const Dashboard = () => {
         open={showNotifications}
         onClose={() => setShowNotifications(false)}
         notifications={[
-          { message: "Task ‘Update Dashboard UI’ completed ✅", time: "5m ago" },
+          {
+            message: "Task ‘Update Dashboard UI’ completed ✅",
+            time: "5m ago",
+          },
           { message: "New board ‘Marketing’ created 🌿", time: "2h ago" },
-          { message: "You have a pending review request 👀", time: "Yesterday" },
+          {
+            message: "You have a pending review request 👀",
+            time: "Yesterday",
+          },
         ]}
       />
     </div>
