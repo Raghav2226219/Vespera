@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { motion } from "framer-motion";
+import NotificationPanel from "../components/NotificationPanel";
 import {
   LogOut,
   Bell,
@@ -17,7 +18,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
+  // ✅ Moved showNotifications outside useEffect (it was wrongly inside before)
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("accessToken");
@@ -67,12 +70,20 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          <button className="hover:text-emerald-300 transition">
+          {/* 🔔 Notification Button */}
+          <button
+            onClick={() => setShowNotifications(true)}
+            className="hover:text-emerald-300 transition"
+          >
             <Bell className="w-5 h-5" />
           </button>
+
+          {/* 👤 Profile */}
           <button className="hover:text-emerald-300 transition">
             <User className="w-5 h-5" />
           </button>
+
+          {/* 🚪 Logout */}
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-sm font-medium transition"
@@ -92,9 +103,7 @@ const Dashboard = () => {
             sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           }`}
         >
-          <h2 className="text-lg font-semibold mb-4 text-emerald-300">
-            Menu
-          </h2>
+          <h2 className="text-lg font-semibold mb-4 text-emerald-300">Menu</h2>
 
           <button className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(255,255,255,0.06)] hover:bg-emerald-500/20 transition-all duration-300">
             <PlusCircle className="w-5 h-5 text-emerald-300" /> New Board
@@ -159,6 +168,17 @@ const Dashboard = () => {
           />
         </main>
       </div>
+
+      {/* 🔔 Notification Sidebar */}
+      <NotificationPanel
+        open={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        notifications={[
+          { message: "Task ‘Update Dashboard UI’ completed ✅", time: "5m ago" },
+          { message: "New board ‘Marketing’ created 🌿", time: "2h ago" },
+          { message: "You have a pending review request 👀", time: "Yesterday" },
+        ]}
+      />
     </div>
   );
 };
