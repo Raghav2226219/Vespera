@@ -3,8 +3,8 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing";
+import Profile from "./pages/Auth/Profile";
 // import BoardDetails from "./pages/BoardDetails";
-// import Profile from "./pages/Profile";
 // import './App.css'
 
 function App() {
@@ -16,6 +16,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="profile" element={<Profile />} />
 
 
           {/* Protected Routes */}
