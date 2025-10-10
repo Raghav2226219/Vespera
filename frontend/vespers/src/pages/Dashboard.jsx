@@ -70,8 +70,11 @@ const Dashboard = () => {
             <Bell className="w-5 h-5" />
           </button>
 
-          {/* 👤 Profile */}
-          <button className="hover:text-emerald-300 transition">
+          {/* 👤 Profile Button */}
+          <button
+            onClick={() => navigate("/profile")}
+            className="hover:text-emerald-300 transition"
+          >
             <User className="w-5 h-5" />
           </button>
 

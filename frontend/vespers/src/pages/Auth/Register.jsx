@@ -164,16 +164,16 @@ const Register = () => {
                       className="w-full appearance-none px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 hover:bg-white/10 transition-all duration-300"
                     >
                       <option value="">Select a role</option>
-                      <option value="Admin" className="bg-gray-900 text-white">
+                      <option value="Admin" className="text-black">
                         Admin
                       </option>
-                      <option value="Owner" className="bg-gray-900 text-white">
+                      <option value="Owner" className="text-black">
                         Owner
                       </option>
-                      <option value="Editor" className="bg-gray-900 text-white">
+                      <option value="Editor" className="text-black">
                         Editor
                       </option>
-                      <option value="Viewer" className="bg-gray-900 text-white">
+                      <option value="Viewer" className="text-black">
                         Viewer
                       </option>
                     </select>
