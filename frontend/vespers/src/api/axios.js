@@ -11,7 +11,7 @@ const API = axios.create({
 // 🔒 Attach token automatically before each request
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -20,17 +20,5 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// // 🚨 Optional: handle global 401 errors (e.g., expired token)
-// API.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       console.warn("Unauthorized! Redirecting to login...");
-//       localStorage.removeItem("token");
-//       window.location.href = "/login"; // auto redirect to login page
-//     }
-//     return Promise.reject(error);
-//   }
-// );
 
 export default API;

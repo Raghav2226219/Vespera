@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Profile from "./pages/Profile";
 import ViewBoards from "./pages/ViewBoard";
+import NewBoard from "./pages/NewBoard";
 // import BoardDetails from "./pages/BoardDetails";
 // import './App.css'
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/boards" element={<ViewBoards/>} />
+          <Route path="/newboard" element={<NewBoard/>} />
           {/* <Route path="/boards/:id" element={<BoardDetails/>}/> */}
           {/* <Route path="/profile" element={<Profile/>}/> */}
         </Routes>

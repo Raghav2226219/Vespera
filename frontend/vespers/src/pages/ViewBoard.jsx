@@ -105,7 +105,7 @@ export default function ViewBoards() {
           </div>
 
           <button
-            onClick={() => navigate("/boards/new")}
+            onClick={() => navigate("/newboard")}
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 font-semibold shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:scale-[1.05] transition"
           >
             + New Board
