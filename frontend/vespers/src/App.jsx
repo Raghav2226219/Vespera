@@ -3,7 +3,8 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing";
-import Profile from "./pages/Auth/Profile";
+import Profile from "./pages/Profile";
+import ViewBoards from "./pages/ViewBoard";
 // import BoardDetails from "./pages/BoardDetails";
 // import './App.css'
 
@@ -16,11 +17,11 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="profile" element={<Profile />} />
-
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/boards" element={<ViewBoards/>} />
           {/* <Route path="/boards/:id" element={<BoardDetails/>}/> */}
           {/* <Route path="/profile" element={<Profile/>}/> */}
         </Routes>
