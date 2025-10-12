@@ -1,12 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-/**
- * Landing.jsx
- * Enhanced for laptop & mobile precision, smoother animations,
- * balanced glass depth, and subtle micro-interactions.
- */
-
 const heroVariants = {
   hidden: { opacity: 0, scale: 0.97, y: 30 },
   visible: {
@@ -38,7 +32,7 @@ const featureFade = (delay = 0) => ({
 
 export default function Landing() {
   return (
-    <div className="min-h-screen w-full relative bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white overflow-hidden">
+    <div className="h-screen w-full relative bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white overflow-hidden flex flex-col">
       {/* === BACKGROUND ANIMATION === */}
       <motion.div
         aria-hidden
@@ -108,12 +102,12 @@ export default function Landing() {
       </header>
 
       {/* === HERO SECTION === */}
-      <main className="relative z-20 flex items-center justify-center min-h-[75vh] px-6 sm:px-10 lg:px-20 xl:px-28 pt-12">
+      <main className="flex-1 relative z-20 flex items-center justify-center px-6 sm:px-10 lg:px-20 xl:px-28 pt-10 pb-10 overflow-hidden">
         <motion.section
           variants={heroVariants}
           initial="hidden"
           animate="visible"
-          className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+          className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center"
         >
           {/* LEFT SIDE */}
           <div className="flex flex-col items-start gap-8">
@@ -157,7 +151,6 @@ export default function Landing() {
                 </motion.div>
               </div>
 
-              {/* FEATURES INLINE */}
               <div className="mt-8 flex flex-wrap gap-4 text-sm text-white/60">
                 {[
                   ["⚡", "Realtime sync"],
@@ -175,7 +168,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* MINI CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
               {[
                 ["Kanban Boards", "Flexible boards and drag-and-drop workflow."],
@@ -199,7 +191,7 @@ export default function Landing() {
           {/* RIGHT SIDE MOCKUP */}
           <div className="flex items-center justify-center">
             <motion.div
-              className="relative w-[360px] md:w-[460px] lg:w-[520px] h-[300px] md:h-[360px] lg:h-[420px] rounded-2xl bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] border border-white/10 backdrop-blur-3xl shadow-[0_20px_60px_rgba(2,6,23,0.7)] overflow-hidden"
+              className="relative w-[340px] md:w-[420px] lg:w-[480px] h-[280px] md:h-[340px] lg:h-[400px] rounded-2xl bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] border border-white/10 backdrop-blur-3xl shadow-[0_20px_60px_rgba(2,6,23,0.7)] overflow-hidden"
               animate={floatSlow.animate}
               transition={floatSlow.transition}
             >
@@ -231,7 +223,7 @@ export default function Landing() {
       </main>
 
       {/* === FOOTER === */}
-      <footer className="relative z-20 border-t border-white/10 py-6 text-center text-sm text-white/50 backdrop-blur-xl bg-white/5">
+      <footer className="border-t border-white/10 py-4 text-center text-sm text-white/50 backdrop-blur-xl bg-white/5 mt-auto">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 flex flex-col md:flex-row items-center justify-between gap-1">
           <div>© {new Date().getFullYear()} Vespera Ventures</div>
           <div className="flex items-center gap-4">

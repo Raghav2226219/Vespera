@@ -2,7 +2,7 @@ const prisma = require("../config/db");
 
 const getAllBoards = async (req, res) => {
   try {
-    const userId = req.user.Id;
+    const userId = req.user.id;
 
     const boards = await prisma.Board.findMany({
       where: {
