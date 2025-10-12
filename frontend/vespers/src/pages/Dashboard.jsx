@@ -57,7 +57,7 @@ const Dashboard = () => {
 
           <h1 className="text-2xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">
             <LayoutDashboard className="w-6 h-6" />
-            Hi, {user?.name || "User"} 👋
+            Vespera
           </h1>
         </div>
 
@@ -133,7 +133,9 @@ const Dashboard = () => {
               >
                 Go to Boards
               </button>
-              <button className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-90 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-[0_0_25px_rgba(16,185,129,0.3)]">
+              <button
+              onClick={() => navigate("/newboard")}
+               className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-90 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-[0_0_25px_rgba(16,185,129,0.3)]">
                 Create New Task
               </button>
             </motion.div>
