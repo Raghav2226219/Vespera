@@ -39,18 +39,34 @@ const Register = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await api.post("/user/register", form);
-      navigate("/login");
-    } catch (err) {
-      setError(err?.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setError("");
+  setLoading(true);
+
+  try {
+    // 1️⃣ Register user
+    await api.post("/user/register", form);
+
+    // 2️⃣ Auto login after successful registration
+    const { data } = await api.post("/user/login", {
+      email: form.email,
+      password: form.password,
+    });
+
+    // 3️⃣ Store tokens and user info in localStorage
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    // 4️⃣ Redirect to Dashboard
+    navigate("/dashboard");
+  } catch (err) {
+    setError(err?.response?.data?.message || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 overflow-hidden">
