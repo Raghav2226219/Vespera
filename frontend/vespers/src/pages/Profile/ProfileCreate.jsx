@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import api from "../api/axios";
+import api from "../../api/axios";
 
 const containerVariants = {
   hidden: { opacity: 0, y: 30, scale: 0.96 },
