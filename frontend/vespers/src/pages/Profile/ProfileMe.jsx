@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import api from "../../api/axios";
 import { Edit3, Phone, Calendar, MapPin, User, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Loader from "../../components/Loader";
 
 const ProfileMe = () => {
   const [profile, setProfile] = useState(null);
@@ -24,13 +25,7 @@ const ProfileMe = () => {
     fetchProfile();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-emerald-400 text-lg font-medium">
-        Loading your profile...
-      </div>
-    );
-  }
+  if (loading) return <Loader />;
 
   if (!profile) {
     return (

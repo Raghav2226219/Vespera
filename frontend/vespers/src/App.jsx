@@ -1,4 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import Loader from "./components/Loader";
+
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
@@ -8,14 +12,34 @@ import NewBoard from "./pages/NewBoard";
 import ProfileCheck from "./pages/Profile/ProfileCheck";
 import ProfileMe from "./pages/Profile/ProfileMe";
 import ProfileCreate from "./pages/Profile/ProfileCreate";
-// import BoardDetails from "./pages/BoardDetails";
-// import './App.css'
 
 function App() {
   return (
+    <Router>
+      <AnimatedRoutes />
+    </Router>
+  );
+}
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Show loader briefly on first mount and on route change
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  return (
     <>
-      <Router>
-        <Routes>
+      <AnimatePresence mode="wait">
+        {loading && <Loader key="route-loader" />}
+      </AnimatePresence>
+
+      {!loading && (
+        <Routes location={location} key={location.pathname}>
           {/* Auth Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -28,12 +52,10 @@ function App() {
           <Route path="/profile/me" element={<ProfileMe />} />
           <Route path="/boards" element={<ViewBoards />} />
           <Route path="/newboard" element={<NewBoard />} />
-          {/* <Route path="/boards/:id" element={<BoardDetails/>}/> */}
-          {/* <Route path="/profile" element={<Profile/>}/> */}
         </Routes>
-      </Router>
+      )}
     </>
   );
-}
+};
 
 export default App;
