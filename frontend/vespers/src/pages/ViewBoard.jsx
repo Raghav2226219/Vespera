@@ -8,44 +8,101 @@ const containerVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
-function BoardCard({ board, onOpen }) {
+const BoardCard = ({ board, onOpen }) => {
   return (
     <motion.div
       onClick={() => onOpen(board)}
-      whileHover={{ rotateX: 8, rotateY: -8, scale: 1.05 }}
-      whileTap={{ scale: 0.96 }}
-      className="relative group w-64 h-44 md:w-72 md:h-48 cursor-pointer"
+      initial={{ rotateX: 0, rotateY: 0, scale: 1 }}
+      whileHover={{
+        rotateX: 4,
+        rotateY: -4,
+        y: -6,
+        scale: 1.04,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 180,
+        damping: 16,
+      }}
+      className="relative group w-80 h-56 md:w-88 md:h-60 cursor-pointer select-none"
       style={{ perspective: 1000 }}
     >
-      {/* Glass Card */}
+      {/* --- Ambient Halo --- */}
       <motion.div
-        className="absolute inset-0 rounded-2xl p-5 flex flex-col justify-between 
-                   backdrop-blur-xl bg-white/10 border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)]
-                   transition-all duration-500 group-hover:bg-white/15 group-hover:border-emerald-300/40"
-        style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
-          transformStyle: "preserve-3d",
-        }}
+        className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-emerald-400/30 via-cyan-400/20 to-transparent opacity-40 blur-xl transition-all duration-700"
+        whileHover={{ opacity: 0.9, scale: 1.05 }}
+      />
+
+      {/* --- Main Card --- */}
+      <motion.div
+        className="relative z-10 h-full w-full rounded-3xl p-6 flex flex-col justify-between overflow-hidden
+                   border border-emerald-400/20 backdrop-blur-2xl
+                   bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900
+                   shadow-[0_0_25px_rgba(0,0,0,0.6)]
+                   group-hover:shadow-[0_0_50px_rgba(16,185,129,0.5)]
+                   transition-all duration-700 ease-out"
       >
-        <div className="flex justify-between items-start">
-          <h3 className="text-xl font-semibold text-white drop-shadow-sm">
+        {/* --- Pulsing Emerald Border --- */}
+        <motion.div
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{ repeat: Infinity, duration: 3 }}
+          className="absolute inset-0 rounded-3xl border border-emerald-400/30 pointer-events-none"
+        />
+
+        {/* --- Soft Glow Overlay (activates on hover) --- */}
+        <motion.div
+          className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-400/5 via-transparent to-cyan-400/5 opacity-0
+                     group-hover:opacity-100 transition-opacity duration-700"
+        />
+
+        {/* --- Diagonal Holo Sweep --- */}
+        <motion.div
+          animate={{ x: ["-150%", "150%"] }}
+          transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+          className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-tr from-transparent via-emerald-300/10 to-transparent opacity-0 group-hover:opacity-40"
+        />
+
+        {/* --- Content --- */}
+        <div className="relative z-10 flex flex-col justify-between h-full">
+          {/* Title */}
+          <motion.h3
+            className="text-2xl font-extrabold tracking-wide text-transparent bg-clip-text
+                       bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200
+                       drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]
+                       transition-transform duration-500"
+            whileHover={{ scale: 1.07 }}
+          >
             {board.title}
-          </h3>
+          </motion.h3>
+
+          {/* Description */}
+          <p className="text-sm text-white/80 mt-2 line-clamp-2 leading-snug">
+            {board.description || "Your next big idea is waiting here."}
+          </p>
+
+          {/* Global Hover Subtext */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 0, y: 8 }}
+            whileHover={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-xs text-emerald-200/70 mt-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 ease-out opacity-0 translate-y-2"
+          >
+            ✦ Tap to open board
+          </motion.div>
         </div>
-
-        <p className="text-sm text-white/70 line-clamp-2">
-          {board.description || "No description available."}
-        </p>
-
-        {/* Glow Border */}
-        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-700 bg-gradient-to-r from-emerald-400/30 to-cyan-400/30 blur-[2px]" />
       </motion.div>
 
-      {/* Ambient Shadow */}
-      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-40 h-6 bg-emerald-400/10 blur-2xl rounded-full" />
+      {/* --- Floating Halo Beneath --- */}
+      <motion.div
+        className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-44 h-8 bg-emerald-400/20 blur-3xl rounded-full"
+        whileHover={{ opacity: 1, scale: 1.2, blur: "40px" }}
+        transition={{ duration: 0.6 }}
+      />
     </motion.div>
   );
-}
+};
+
 
 export default function ViewBoards() {
   const navigate = useNavigate();
