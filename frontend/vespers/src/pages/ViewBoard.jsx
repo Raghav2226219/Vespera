@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react"; // ✅ For search icon
+import { Search } from "lucide-react";
 import api from "../api/axios";
 
 const containerVariants = {
@@ -77,7 +77,6 @@ const BoardCard = ({ board, onOpen }) => {
 
           <motion.div
             initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 0, y: 8 }}
             whileHover={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-xs text-emerald-200/70 mt-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 ease-out opacity-0 translate-y-2"
@@ -100,7 +99,7 @@ export default function ViewBoards() {
   const navigate = useNavigate();
   const [boards, setBoards] = useState([]);
   const [filteredBoards, setFilteredBoards] = useState([]);
-  const [search, setSearch] = useState(""); // ✅ Debounced search term
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -108,7 +107,9 @@ export default function ViewBoards() {
     const fetchBoards = async () => {
       try {
         const res = await api.get("/board/all");
-        const data = Array.isArray(res.data) ? res.data : res.data.boards || [];
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data.boards || [];
         setBoards(data);
         setFilteredBoards(data);
       } catch (err) {
@@ -124,7 +125,7 @@ export default function ViewBoards() {
   // ✅ Debounced Search Effect (700ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.trim() === "") {
+      if (!search.trim()) {
         setFilteredBoards(boards);
       } else {
         const lower = search.toLowerCase();
@@ -136,17 +137,17 @@ export default function ViewBoards() {
         setFilteredBoards(filtered);
       }
     }, 700);
-
     return () => clearTimeout(timer);
   }, [search, boards]);
 
+  // ✅ Correct navigation (uses numeric `id`, not `_id`)
   const openBoard = (board) => {
-    navigate(`/boards/${board._id}`);
+    navigate(`/board/${board.id}`);
   };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white py-12 px-6 overflow-x-hidden relative">
-      {/* Ambient Glow Backgrounds */}
+      {/* Animated Backgrounds */}
       <motion.div
         animate={{ x: [0, 40, -40, 0], y: [0, -30, 30, 0] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
@@ -176,7 +177,7 @@ export default function ViewBoards() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-stretch sm:items-center">
-            {/* ✅ Search Bar */}
+            {/* Search Bar */}
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/60 w-5 h-5" />
               <input
@@ -192,7 +193,7 @@ export default function ViewBoards() {
               />
             </div>
 
-            {/* Existing New Board Button */}
+            {/* Create New Board */}
             <button
               onClick={() => navigate("/newboard")}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 font-semibold shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:scale-[1.05] transition"
@@ -202,7 +203,7 @@ export default function ViewBoards() {
           </div>
         </header>
 
-        {/* Board Grid */}
+        {/* Boards Grid */}
         {loading ? (
           <div className="text-center py-24 text-emerald-200/80 text-lg">
             Loading boards…
@@ -218,7 +219,7 @@ export default function ViewBoards() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 justify-items-center">
             {filteredBoards.map((b) => (
-              <BoardCard key={b._id} board={b} onOpen={openBoard} />
+              <BoardCard key={b.id} board={b} onOpen={openBoard} />
             ))}
           </div>
         )}

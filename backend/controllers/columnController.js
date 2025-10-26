@@ -28,11 +28,6 @@ const getColumnsByBoard = async (req, res) => {
       include: {
         tasks: {
           orderBy: { position: "asc" },
-          include: {
-            assignedUser: {
-              select: { id: true, name: true, email: true },
-            },
-          },
         },
       },
       orderBy: { position: "asc" },
@@ -48,7 +43,7 @@ const getColumnsByBoard = async (req, res) => {
 // ✅ Rename a column
 const renameColumn = async (req, res) => {
   try {
-    const { boardId, columnId } = req.params;
+    const { columnId } = req.params;
     const { name } = req.body;
 
     const updated = await prisma.column.update({
@@ -66,9 +61,8 @@ const renameColumn = async (req, res) => {
 // ✅ Reorder Columns
 const reorderColumns = async (req, res) => {
   try {
-    const { boardId } = req.params;
     const { newOrder } = req.body;
-    // newOrder = [ {id: 1, position: 1}, {id: 2, position: 2}, ...]
+    // newOrder = [ {id: 1, position: 1}, {id: 2, position: 2}, ... ]
 
     const updates = newOrder.map(col =>
       prisma.column.update({

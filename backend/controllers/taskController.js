@@ -1,22 +1,27 @@
 const prisma = require("../config/db");
 
-// ✅ Create new task in a column
+// ✅ Create new task (always goes to "To Do" column)
 const createTask = async (req, res) => {
   try {
-    const { boardId, columnId } = req.params;
-    const { title, description, assignedTo } = req.body;
+    const { boardId } = req.params;
+    const { title, description } = req.body;
 
-    const column = await prisma.column.findUnique({
-      where: { id: parseInt(columnId) },
-    });
-
-    if (!column || column.boardId !== parseInt(boardId)) {
-      return res.status(404).json({ message: "Column not found in this board" });
+    if (!title) {
+      return res.status(400).json({ message: "Task title is required." });
     }
 
-    // find position (max + 1)
+    // Find "To Do" column
+    const todoColumn = await prisma.column.findFirst({
+      where: { boardId: parseInt(boardId), position: 1 },
+    });
+
+    if (!todoColumn) {
+      return res.status(404).json({ message: 'Default "To Do" column not found.' });
+    }
+
+    // Get next position
     const maxPosition = await prisma.task.aggregate({
-      where: { columnId: parseInt(columnId) },
+      where: { columnId: todoColumn.id },
       _max: { position: true },
     });
 
@@ -24,8 +29,7 @@ const createTask = async (req, res) => {
       data: {
         title,
         description,
-        columnId: parseInt(columnId),
-        assignedTo: assignedTo ? parseInt(assignedTo) : null,
+        columnId: todoColumn.id,
         position: (maxPosition._max.position || 0) + 1,
       },
     });
@@ -41,15 +45,11 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const { taskId } = req.params;
-    const { title, description, assignedTo } = req.body;
+    const { title, description } = req.body;
 
     const updatedTask = await prisma.task.update({
       where: { id: parseInt(taskId) },
-      data: {
-        title,
-        description,
-        assignedTo: assignedTo ? parseInt(assignedTo) : null,
-      },
+      data: { title, description },
     });
 
     res.json(updatedTask);
@@ -59,7 +59,7 @@ const updateTask = async (req, res) => {
   }
 };
 
-// ✅ Move Task (Drag-Drop)
+// ✅ Move task (Drag & Drop)
 const moveTask = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -88,7 +88,7 @@ const moveTask = async (req, res) => {
   }
 };
 
-// ✅ Delete Task
+// ✅ Delete task
 const deleteTask = async (req, res) => {
   try {
     const { taskId } = req.params;

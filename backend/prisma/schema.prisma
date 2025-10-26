@@ -23,7 +23,6 @@ model User {
 
   inviterLogs   InviteLog[] @relation("InviterLogs")
   acceptedLogs  InviteLog[] @relation("AcceptedLogs")
-  assignedTasks Task[]      @relation("AssignedTasks")
 }
 
 enum Role {
@@ -144,14 +143,13 @@ model Column {
 }
 
 model Task {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String?
-  position     Int
-  columnId     Int
-  column       Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  assignedTo   Int?
-  assignedUser User?    @relation("AssignedTasks", fields: [assignedTo], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  position    Int
+  columnId    Int
+  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+

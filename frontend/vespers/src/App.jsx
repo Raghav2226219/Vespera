@@ -12,6 +12,7 @@ import NewBoard from "./pages/NewBoard";
 import ProfileCheck from "./pages/Profile/ProfileCheck";
 import ProfileMe from "./pages/Profile/ProfileMe";
 import ProfileCreate from "./pages/Profile/ProfileCreate";
+import BoardPage from "./pages/BoardPage";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ const AnimatedRoutes = () => {
           <Route path="/profile/me" element={<ProfileMe />} />
           <Route path="/boards" element={<ViewBoards />} />
           <Route path="/newboard" element={<NewBoard />} />
+          <Route path="/board/:boardId" element={<BoardPage/>} />
         </Routes>
       )}
     </>
