@@ -142,7 +142,6 @@ Body (JSON):
 {
   "title": "Task 1",
   "description": "This is a test task",
-  "assignedTo": 2   // Optional: userId of assigned person
 }
 Example:
 POST http://localhost:5896/api/tasks/1/1
@@ -155,7 +154,6 @@ Body (JSON):
 {
   "title": "Updated Task Title",
   "description": "Updated description",
-  "assignedTo": 3   // Optional
 }
 Example:
 PUT http://localhost:5896/api/tasks/5

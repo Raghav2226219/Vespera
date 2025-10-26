@@ -10,11 +10,13 @@ const createDefaultColumns = async (boardId) => {
 
   await prisma.column.createMany({
     data: defaultColumns.map(col => ({
-      ...col,
+       name: col.name,
+      position: col.position,
       boardId: boardId,
     })),
+    skipDuplicates: true, 
   });
-
+console.log(`✅ Default columns created for board ${boardId}`);
   return true;
 };
 
@@ -41,48 +43,48 @@ const getColumnsByBoard = async (req, res) => {
 };
 
 // ✅ Rename a column
-const renameColumn = async (req, res) => {
-  try {
-    const { columnId } = req.params;
-    const { name } = req.body;
+// const renameColumn = async (req, res) => {
+//   try {
+//     const { columnId } = req.params;
+//     const { name } = req.body;
 
-    const updated = await prisma.column.update({
-      where: { id: parseInt(columnId) },
-      data: { name },
-    });
+//     const updated = await prisma.column.update({
+//       where: { id: parseInt(columnId) },
+//       data: { name },
+//     });
 
-    res.json(updated);
-  } catch (err) {
-    console.error("Error renaming column: ", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+//     res.json(updated);
+//   } catch (err) {
+//     console.error("Error renaming column: ", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 // ✅ Reorder Columns
-const reorderColumns = async (req, res) => {
-  try {
-    const { newOrder } = req.body;
-    // newOrder = [ {id: 1, position: 1}, {id: 2, position: 2}, ... ]
+// const reorderColumns = async (req, res) => {
+//   try {
+//     const { newOrder } = req.body;
+//     // newOrder = [ {id: 1, position: 1}, {id: 2, position: 2}, ... ]
 
-    const updates = newOrder.map(col =>
-      prisma.column.update({
-        where: { id: col.id },
-        data: { position: col.position },
-      })
-    );
+//     const updates = newOrder.map(col =>
+//       prisma.column.update({
+//         where: { id: col.id },
+//         data: { position: col.position },
+//       })
+//     );
 
-    await prisma.$transaction(updates);
+//     await prisma.$transaction(updates);
 
-    res.json({ message: "Column order updated" });
-  } catch (err) {
-    console.error("Error reordering columns: ", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+//     res.json({ message: "Column order updated" });
+//   } catch (err) {
+//     console.error("Error reordering columns: ", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 module.exports = {
   createDefaultColumns,
   getColumnsByBoard,
-  renameColumn,
-  reorderColumns,
+  // renameColumn,
+  // reorderColumns,
 };

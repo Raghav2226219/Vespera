@@ -12,7 +12,7 @@ const createTask = async (req, res) => {
 
     // Find "To Do" column
     const todoColumn = await prisma.column.findFirst({
-      where: { boardId: parseInt(boardId), position: 1 },
+      where: { boardId: parseInt(boardId),   name: { in: ["To Do", "Todo", "ToDo"], mode: "insensitive" },},
     });
 
     if (!todoColumn) {

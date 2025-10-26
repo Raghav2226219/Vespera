@@ -43,31 +43,48 @@ const BoardPage = () => {
     loadData();
   }, [boardId]);
 
-  const handleCreateTask = async (e) => {
-    e.preventDefault();
-    if (!newTask.title.trim()) {
-      alert("Task title is required.");
+  // ✅ Create task → goes to "To Do" column
+const handleCreateTask = async (e) => {
+  e.preventDefault();
+  if (!newTask.title.trim()) {
+    alert("Task title is required.");
+    return;
+  }
+
+  setCreating(true);
+  try {
+    // 1️⃣ Fetch columns to find the "To Do" column
+    const colRes = await api.get(`/columns/${boardId}`);
+    const todoColumn = colRes.data.find(
+      (col) => col.name.toLowerCase() === "to do"
+    );
+
+    if (!todoColumn) {
+      alert('No "To Do" column found. Please create one first.');
+      setCreating(false);
       return;
     }
 
-    setCreating(true);
-    try {
-      await api.post(`/tasks/${boardId}`, {
-        title: newTask.title,
-        description: newTask.description,
-      });
-      setShowTaskModal(false);
-      setNewTask({ title: "", description: "" });
-      await fetchColumns();
-    } catch (err) {
-      console.error("Error creating task:", err);
-      alert("Failed to create task.");
-    } finally {
-      setCreating(false);
-    }
-  };
+    // 2️⃣ Create task under that column
+    await api.post(`/tasks/${boardId}/${todoColumn.id}`, {
+      title: newTask.title,
+      description: newTask.description,
+    });
+
+    setShowTaskModal(false);
+    setNewTask({ title: "", description: "" });
+    await fetchColumns();
+  } catch (err) {
+    console.error("Error creating task:", err);
+    alert("Failed to create task.");
+  } finally {
+    setCreating(false);
+  }
+};
+
 
   if (loading) return <Loader />;
+
   if (error)
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-red-400 text-lg font-semibold">
@@ -108,7 +125,7 @@ const BoardPage = () => {
         </button>
       </div>
 
-      {/* ✅ Columns Section with adjusted left padding */}
+      {/* Columns Section */}
       <div
         className="
           flex flex-wrap md:flex-nowrap
@@ -139,7 +156,7 @@ const BoardPage = () => {
         )}
       </div>
 
-      {/* Add Task Modal */}
+      {/* ✅ Add Task Modal */}
       <AnimatePresence>
         {showTaskModal && (
           <motion.div
