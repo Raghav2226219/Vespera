@@ -95,3 +95,88 @@ http://localhost:5896/api/invites/4/admin?page=1&limit=5 (get) (to get all the p
 http://localhost:5896/api/invites/17/cancel (delete) (for cancelling invite just required authorization in header)
 
 http://localhost:5896/api/invite-history/7
+
+Method: GET
+URL: /:boardId
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body: None
+Example:
+GET http://localhost:5896/api/columns/1
+
+Method: PUT
+URL: /:boardId/:columnId/rename
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body (JSON):
+{
+  "name": "New Column Name"
+}
+Example:
+PUT http://localhost:5896/api/columns/1/2/rename
+Body:
+{
+  "name": "In Progress"
+}
+
+Method: PUT
+URL: /:boardId/reorder
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body (JSON):
+{
+  "newOrder": [
+    { "id": 1, "position": 1 },
+    { "id": 2, "position": 2 },
+    { "id": 3, "position": 3 }
+  ]
+}
+Example:
+PUT http://localhost:5896/api/columns/1/reorder
+
+Method: POST
+URL: /:boardId/:columnId
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body (JSON):
+{
+  "title": "Task 1",
+  "description": "This is a test task",
+  "assignedTo": 2   // Optional: userId of assigned person
+}
+Example:
+POST http://localhost:5896/api/tasks/1/1
+
+Method: PUT
+URL: /:taskId
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body (JSON):
+{
+  "title": "Updated Task Title",
+  "description": "Updated description",
+  "assignedTo": 3   // Optional
+}
+Example:
+PUT http://localhost:5896/api/tasks/5
+
+Method: PUT
+URL: /move/:taskId
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body (JSON):
+{
+  "targetColumnId": 2,
+  "newPosition": 1
+}
+Example:
+PUT http://localhost:5896/api/tasks/move/5
+
+Method: DELETE
+URL: /:taskId
+Headers:
+  Authorization: Bearer <YOUR_JWT_TOKEN>
+Body: None
+Example:
+DELETE http://localhost:5896/api/tasks/5
+

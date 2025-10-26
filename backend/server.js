@@ -18,6 +18,8 @@ const profileRoute = require("./routes/profileRoute");
 const boardRoute = require("./routes/boardRoute");
 const inviteRoute = require("./routes/inviteRoute");
 const inviteHistoryRoute = require("./routes/inviteHistoryRoute");
+const columnRoutes = require("./routes/columnRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 
 app.get("/", (req, res) => {
   res.send("API is running");
@@ -28,6 +30,8 @@ app.use("/api/profile", profileRoute);
 app.use("/api/board", boardRoute);
 app.use("/api/invites", inviteRoute);
 app.use("/api/invite-history", inviteHistoryRoute);
+app.use("/api/columns", columnRoutes);
+app.use("/api/tasks", taskRoutes);
 
 cron.schedule("0 * * * *", async () => {
   try{

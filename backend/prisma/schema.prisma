@@ -17,12 +17,13 @@ model User {
   createdAt    DateTime @default(now())
   refreshToken String?
 
-  Profile Profile?
+  Profile     Profile?
   BoardMember BoardMember[]
-  Board Board[]
+  Board       Board[]
 
-  inviterLogs InviteLog[] @relation("InviterLogs")
-  acceptedLogs InviteLog[] @relation("AcceptedLogs")
+  inviterLogs   InviteLog[] @relation("InviterLogs")
+  acceptedLogs  InviteLog[] @relation("AcceptedLogs")
+  assignedTasks Task[]      @relation("AssignedTasks")
 }
 
 enum Role {
@@ -32,100 +33,125 @@ enum Role {
   Viewer
 }
 
-model Profile{
-  id Int @id @default(autoincrement())
-  userId Int @unique
-  name String
+model Profile {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @unique
+  name        String
   phoneNumber String
-  dob DateTime?
-  gender Gender
-  address String?
-  bio String?
-  profilePic String?
+  dob         DateTime?
+  gender      Gender
+  address     String?
+  bio         String?
+  profilePic  String?
 
   user User @relation(fields: [userId], references: [id])
 }
 
-enum Gender{
+enum Gender {
   Male
   Female
   Other
 }
 
 model Board {
-  id Int @id @default(autoincrement())
-  title String
+  id          Int      @id @default(autoincrement())
+  title       String
   description String?
-  isArchived Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   ownerId Int
-  owner User @relation(fields: [ownerId], references: [id])
+  owner   User @relation(fields: [ownerId], references: [id])
 
   members BoardMember[]
   invites Invite[]
-  logs InviteLog[]
+  logs    InviteLog[]
+  columns Column[]
 
   @@unique([ownerId, title])
 }
 
-model BoardMember{
-  id Int @id @default(autoincrement())
-  boardId Int
-  userId Int
-  role Role @default(Viewer)
+model BoardMember {
+  id       Int      @id @default(autoincrement())
+  boardId  Int
+  userId   Int
+  role     Role     @default(Viewer)
   joinedAt DateTime @default(now())
 
   board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
 
   @@unique([boardId, userId])
 }
 
 model Invite {
-  id Int @id @default(autoincrement())
-  boardId Int
-  email String
-  role Role @default(Viewer)
-  tokenHash String @unique
-  expiresAt DateTime
-  used Boolean @default(false)
-  createdAt DateTime @default(now())
-  cancelled Boolean @default(false)
+  id          Int       @id @default(autoincrement())
+  boardId     Int
+  email       String
+  role        Role      @default(Viewer)
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  used        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  cancelled   Boolean   @default(false)
   cancelledAt DateTime?
 
-  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  logs InviteLog[]
+  board Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  logs  InviteLog[]
 
   @@index([boardId])
   @@index([email])
 }
 
 model InviteLog {
-  id Int @id @default(autoincrement())
-  boardId Int
-  inviteId Int
-  inviterId Int
+  id           Int          @id @default(autoincrement())
+  boardId      Int
+  inviteId     Int
+  inviterId    Int
   acceptedById Int?
   inviteeEmail String
-  action InviteAction
-  createdAt DateTime @default(now())
+  action       InviteAction
+  createdAt    DateTime     @default(now())
 
-  board Board @relation(fields: [boardId], references: [id])
-  invite Invite @relation(fields: [inviteId], references: [id])
-  inviter User @relation("InviterLogs",fields: [inviterId], references: [id])
-  acceptedBy User? @relation("AcceptedLogs", fields: [acceptedById], references: [id])
+  board      Board  @relation(fields: [boardId], references: [id])
+  invite     Invite @relation(fields: [inviteId], references: [id])
+  inviter    User   @relation("InviterLogs", fields: [inviterId], references: [id])
+  acceptedBy User?  @relation("AcceptedLogs", fields: [acceptedById], references: [id])
 
   @@index([boardId])
   @@index([inviterId])
   @@index([acceptedById])
 }
 
-enum InviteAction{
+enum InviteAction {
   SENT
   ACCEPTED
   CANCELLED
   SUSPICIOUS
   PENDING
+}
+
+model Column {
+  id        Int      @id @default(autoincrement())
+  name      String
+  position  Int // Used to order columns (1=ToDo, 2=Doing, 3=Done)
+  boardId   Int
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[] // A column contains multiple tasks
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  position     Int
+  columnId     Int
+  column       Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assignedTo   Int?
+  assignedUser User?    @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
