@@ -79,8 +79,8 @@ const BoardPage = () => {
       setCreating(false);
     }
   };
-
-  // ✅ Updated DnD handler
+  
+// ✅ FINAL drag handler – fixes jump-back issue
 const handleDragEnd = async (result) => {
   const { destination, source, draggableId } = result;
 
@@ -91,58 +91,55 @@ const handleDragEnd = async (result) => {
   )
     return;
 
-  const sourceColIndex = columns.findIndex(
+  // Clone columns for local manipulation
+  const newColumns = [...columns];
+  const sourceColIndex = newColumns.findIndex(
     (col) => col.id.toString() === source.droppableId
   );
-  const destColIndex = columns.findIndex(
+  const destColIndex = newColumns.findIndex(
     (col) => col.id.toString() === destination.droppableId
   );
 
-  const sourceCol = columns[sourceColIndex];
-  const destCol = columns[destColIndex];
+  const sourceCol = newColumns[sourceColIndex];
+  const destCol = newColumns[destColIndex];
   const draggedTask = sourceCol.tasks[source.index];
 
-  // ✅ Optimistically update UI
-  const newColumns = [...columns];
-  newColumns[sourceColIndex] = {
-    ...sourceCol,
-    tasks: [...sourceCol.tasks],
-  };
-  newColumns[sourceColIndex].tasks.splice(source.index, 1);
+  // ✅ Optimistically update UI immediately
+  const updatedSourceTasks = [...sourceCol.tasks];
+  updatedSourceTasks.splice(source.index, 1);
 
-  if (sourceCol.id === destCol.id) {
-    newColumns[destColIndex].tasks.splice(destination.index, 0, draggedTask);
-  } else {
-    newColumns[destColIndex] = {
-      ...destCol,
-      tasks: [...destCol.tasks],
-    };
-    newColumns[destColIndex].tasks.splice(destination.index, 0, {
-      ...draggedTask,
-      columnId: destCol.id,
-    });
-  }
+  const updatedDestTasks = [...destCol.tasks];
+  updatedDestTasks.splice(destination.index, 0, {
+    ...draggedTask,
+    columnId: destCol.id,
+  });
 
+  newColumns[sourceColIndex] = { ...sourceCol, tasks: updatedSourceTasks };
+  newColumns[destColIndex] = { ...destCol, tasks: updatedDestTasks };
   setColumns(newColumns);
 
-  // ✅ Persist change to backend
+  // ✅ Then persist to backend in background
   try {
     const taskId = Number(draggableId);
     const targetColumnId = Number(destCol.id);
     const newPosition = Number(destination.index);
-
-    console.log("🧩 Moving Task:", { taskId, targetColumnId, newPosition });
 
     await api.put(`/tasks/move/${taskId}`, {
       targetColumnId,
       newPosition,
     });
 
-    await fetchColumns();
+    // ✅ Delay refresh slightly to avoid visual flicker / race
+    setTimeout(() => {
+      fetchColumns();
+    }, 250);
   } catch (err) {
     console.error("Error updating task position:", err);
+    // Optional fallback: revert UI or refresh immediately
+    fetchColumns();
   }
 };
+
 
 
 

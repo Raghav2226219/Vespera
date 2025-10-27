@@ -66,7 +66,8 @@ const Column = ({ column, boardId, refreshColumns }) => {
                   <TaskCard
                     key={task.id}
                     task={task}
-                    index={index} // ✅ integer
+                    index={index}
+                    onDelete={refreshColumns}
                   />
                 ))
             ) : (
