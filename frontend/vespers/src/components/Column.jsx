@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import api from "../api/axios";
 import TaskCard from "./TaskCard";
 import Loader from "./Loader";
-import { Droppable, Draggable } from "@hello-pangea/dnd";
+import { Droppable } from "@hello-pangea/dnd";
 
 const Column = ({ column, boardId, refreshColumns }) => {
   const [newTask, setNewTask] = useState("");
@@ -36,8 +36,8 @@ const Column = ({ column, boardId, refreshColumns }) => {
           {column.name}
         </h2>
 
-        {/* ➕ Quick add task */}
-        {/* <form onSubmit={handleAddTask} className="flex gap-2 items-center">
+        {/* ➕ Quick add task (optional)
+        <form onSubmit={handleAddTask} className="flex gap-2 items-center">
           <input
             type="text"
             value={newTask}
@@ -61,27 +61,13 @@ const Column = ({ column, boardId, refreshColumns }) => {
           >
             {column.tasks.length > 0 ? (
               column.tasks
-                // ✅ Keep order consistent (backend sorts by position)
                 .sort((a, b) => a.position - b.position)
                 .map((task, index) => (
-                  <Draggable
+                  <TaskCard
                     key={task.id}
-                    draggableId={task.id.toString()}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`transition-transform ${
-                          snapshot.isDragging ? "scale-[1.03]" : ""
-                        }`}
-                      >
-                        <TaskCard task={task} />
-                      </div>
-                    )}
-                  </Draggable>
+                    task={task}
+                    index={index} // ✅ integer
+                  />
                 ))
             ) : (
               <p className="text-sm text-emerald-200/60 italic">

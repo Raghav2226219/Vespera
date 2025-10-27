@@ -156,7 +156,7 @@ const handleDragEnd = async (result) => {
     );
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8 overflow-hidden">
+    <div className="relative h-screen overflow-y-hidden bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8">
       {/* Header */}
       <div className="relative z-10 backdrop-blur-lg bg-white/5 px-6 py-5 md:px-8 md:py-6 rounded-2xl border border-white/10 shadow-xl mb-10 flex justify-between items-center flex-wrap gap-4">
         <div>
