@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
+import { LayoutDashboard } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0, y: 30, scale: 0.96 },
@@ -23,6 +25,8 @@ const floatAnim = {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     phoneNumber: "",
@@ -55,7 +59,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 overflow-hidden relative">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 overflow-hidden relative">
       {/* Background Lights */}
       <motion.div
         animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0] }}
@@ -217,6 +221,18 @@ const Profile = () => {
                 {loading ? "Saving..." : "Save Profile"}
               </motion.button>
             </form>
+
+            {/* Back to Dashboard Button */}
+            <motion.button
+              onClick={() => navigate("/dashboard")}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="mt-6 flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-500/90 text-gray-900 font-semibold rounded-xl hover:bg-emerald-400 hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] transition-all"
+            >
+              <LayoutDashboard size={18} />
+              Back to Dashboard
+            </motion.button>
           </div>
 
           {/* Right Image Section */}
