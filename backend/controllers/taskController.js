@@ -1,25 +1,27 @@
 const prisma = require("../config/db");
 
-// ✅ Create new task (always goes to "To Do" column)
+// ✅ Create Task
 const createTask = async (req, res) => {
   try {
     const { boardId } = req.params;
     const { title, description } = req.body;
 
-    if (!title) {
-      return res.status(400).json({ message: "Task title is required." });
-    }
+    if (!title) return res.status(400).json({ message: "Task title is required." });
 
-    // Find "To Do" column
     const todoColumn = await prisma.column.findFirst({
-      where: { boardId: parseInt(boardId),   name: { in: ["To Do", "Todo", "ToDo"], mode: "insensitive" },},
+      where: {
+        boardId: parseInt(boardId),
+        OR: [
+          { name: { equals: "To Do", mode: "insensitive" } },
+          { name: { equals: "Todo", mode: "insensitive" } },
+          { name: { equals: "ToDo", mode: "insensitive" } },
+        ],
+      },
     });
 
-    if (!todoColumn) {
+    if (!todoColumn)
       return res.status(404).json({ message: 'Default "To Do" column not found.' });
-    }
 
-    // Get next position
     const maxPosition = await prisma.task.aggregate({
       where: { columnId: todoColumn.id },
       _max: { position: true },
@@ -36,70 +38,89 @@ const createTask = async (req, res) => {
 
     res.status(201).json(newTask);
   } catch (err) {
-    console.error("Error creating task: ", err);
+    console.error("Error creating task:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ Update task
+// ✅ Update Task
 const updateTask = async (req, res) => {
   try {
-    const { taskId } = req.params;
+    const { id } = req.params;
     const { title, description } = req.body;
 
     const updatedTask = await prisma.task.update({
-      where: { id: parseInt(taskId) },
+      where: { id: parseInt(id) },
       data: { title, description },
     });
 
     res.json(updatedTask);
   } catch (err) {
-    console.error("Error updating task: ", err);
+    console.error("Error updating task:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ Move task (Drag & Drop)
+// ✅ Move Task (Drag & Drop)
 const moveTask = async (req, res) => {
   try {
-    const { taskId } = req.params;
+    const { id } = req.params;
     const { targetColumnId, newPosition } = req.body;
 
+    // ✅ Fix: Allow position 0 and check for undefined
+    if (targetColumnId === undefined || newPosition === undefined) {
+      return res
+        .status(400)
+        .json({ message: "targetColumnId and newPosition are required." });
+    }
+
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(taskId) },
+      where: { id: parseInt(id) },
     });
 
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      return res.status(404).json({ message: "Task not found." });
     }
 
-    await prisma.task.update({
-      where: { id: task.id },
-      data: {
-        columnId: parseInt(targetColumnId),
-        position: parseInt(newPosition),
-      },
+    const oldColumnId = task.columnId;
+    const newColumnId = parseInt(targetColumnId);
+    const newPos = parseInt(newPosition);
+
+    await prisma.$transaction(async (tx) => {
+      // Adjust positions in old column
+      await tx.task.updateMany({
+        where: { columnId: oldColumnId, position: { gt: task.position } },
+        data: { position: { decrement: 1 } },
+      });
+
+      // Shift tasks in the new column to make space
+      await tx.task.updateMany({
+        where: { columnId: newColumnId, position: { gte: newPos } },
+        data: { position: { increment: 1 } },
+      });
+
+      // Finally, move the task
+      await tx.task.update({
+        where: { id: parseInt(id) },
+        data: { columnId: newColumnId, position: newPos },
+      });
     });
 
-    res.json({ message: "Task moved successfully" });
+    res.json({ message: "Task moved successfully." });
   } catch (err) {
-    console.error("Error moving task: ", err);
+    console.error("Error moving task:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ Delete task
+// ✅ Delete Task
 const deleteTask = async (req, res) => {
   try {
-    const { taskId } = req.params;
-
-    await prisma.task.delete({
-      where: { id: parseInt(taskId) },
-    });
-
-    res.json({ message: "Task deleted successfully" });
+    const { id } = req.params;
+    await prisma.task.delete({ where: { id: parseInt(id) } });
+    res.json({ message: "Task deleted successfully." });
   } catch (err) {
-    console.error("Error deleting task: ", err);
+    console.error("Error deleting task:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
