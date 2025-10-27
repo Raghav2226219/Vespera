@@ -117,13 +117,39 @@ const moveTask = async (req, res) => {
 const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.task.delete({ where: { id: parseInt(id) } });
-    res.json({ message: "Task deleted successfully." });
+    const taskId = parseInt(id);
+
+    if (isNaN(taskId)) {
+      return res.status(400).json({ message: "Invalid task ID" });
+    }
+
+    // ✅ Optional: check if task exists before deleting
+    const existingTask = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!existingTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // ✅ Delete task safely
+    await prisma.task.delete({
+      where: { id: taskId },
+    });
+
+    return res.status(200).json({ message: "Task deleted successfully." });
   } catch (err) {
-    console.error("Error deleting task:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Error deleting task:", err);
+
+    // ✅ Handle foreign key constraint error
+    if (err.code === "P2003") {
+      return res.status(409).json({
+        message:
+          "Cannot delete task because it is still referenced by another record.",
+      });
+    }
+
+    res.status(500).json({ message: "Server error while deleting task." });
   }
 };
+
 
 module.exports = {
   createTask,

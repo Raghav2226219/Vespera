@@ -1,54 +1,34 @@
-import React, { useState } from "react";
-import api from "../api/axios";
+import React from "react";
 import TaskCard from "./TaskCard";
-import Loader from "./Loader";
 import { Droppable } from "@hello-pangea/dnd";
 
-const Column = ({ column, boardId, refreshColumns }) => {
-  const [newTask, setNewTask] = useState("");
-  const [loading, setLoading] = useState(false);
+const Column = ({ column, boardId, onTaskDelete }) => {
+  // ✅ NO local state - use parent's state directly
+  // This prevents sync issues and flicker
 
-  const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!newTask.trim()) return;
-    setLoading(true);
-    try {
-      await api.post(`/tasks/${boardId}/${column.id}`, {
-        title: newTask,
-        description: "",
-      });
-      setNewTask("");
-      await refreshColumns();
-    } catch (err) {
-      console.error("Error adding task:", err);
-    } finally {
-      setLoading(false);
+  // ✅ Delete handler that calls parent's onTaskDelete
+  const handleDeleteTask = (taskId) => {
+    console.log('Column: Deleting task', taskId, 'from column', column.id);
+    if (onTaskDelete) {
+      onTaskDelete(taskId, column.id);
+    } else {
+      console.error('onTaskDelete prop is not provided');
     }
   };
 
   return (
     <div className="bg-white/10 backdrop-blur-lg border border-emerald-400/20 p-4 rounded-2xl shadow-lg min-w-[320px] max-w-[360px] transition-all duration-300 hover:shadow-emerald-400/20 flex flex-col">
-      {loading && <Loader />}
-
-      {/* ✅ Column Header */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-emerald-300">
           {column.name}
         </h2>
-
-        {/* ➕ Quick add task (optional)
-        <form onSubmit={handleAddTask} className="flex gap-2 items-center">
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="+ Add"
-            className="bg-transparent border-b border-emerald-400/40 text-emerald-100 placeholder-emerald-200/50 text-sm w-24 focus:outline-none focus:border-emerald-300"
-          />
-        </form> */}
+        <span className="text-xs text-emerald-200/60 bg-emerald-500/20 px-2 py-1 rounded-full">
+          {column.tasks?.length || 0}
+        </span>
       </div>
 
-      {/* 🧲 Droppable area for drag-and-drop */}
+      {/* Droppable area */}
       <Droppable droppableId={column.id.toString()}>
         {(provided, snapshot) => (
           <div
@@ -59,7 +39,7 @@ const Column = ({ column, boardId, refreshColumns }) => {
             }`}
             style={{ height: "60vh" }}
           >
-            {column.tasks.length > 0 ? (
+            {column.tasks && column.tasks.length > 0 ? (
               column.tasks
                 .sort((a, b) => a.position - b.position)
                 .map((task, index) => (
@@ -67,7 +47,7 @@ const Column = ({ column, boardId, refreshColumns }) => {
                     key={task.id}
                     task={task}
                     index={index}
-                    onDelete={refreshColumns}
+                    onDelete={(taskId) => handleDeleteTask(taskId)}
                   />
                 ))
             ) : (

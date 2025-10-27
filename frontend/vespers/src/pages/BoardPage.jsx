@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import Column from "../components/Column";
@@ -16,7 +16,10 @@ const BoardPage = () => {
   const [newTask, setNewTask] = useState({ title: "", description: "" });
   const [creating, setCreating] = useState(false);
 
-  const fetchBoard = async () => {
+  // 🔹 keep track of the last stable state to avoid flicker rollback
+  const lastStableColumns = useRef([]);
+
+  const fetchBoard = useCallback(async () => {
     try {
       const res = await api.get(`/board/${boardId}`);
       setBoard(res.data);
@@ -24,17 +27,18 @@ const BoardPage = () => {
       console.error("Error fetching board details:", err);
       setError("Failed to load board details.");
     }
-  };
+  }, [boardId]);
 
-  const fetchColumns = async () => {
+  const fetchColumns = useCallback(async () => {
     try {
       const res = await api.get(`/columns/${boardId}`);
       setColumns(res.data);
+      lastStableColumns.current = res.data;
     } catch (err) {
       console.error("Error fetching columns:", err);
       setError("Failed to load columns.");
     }
-  };
+  }, [boardId]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,7 +46,7 @@ const BoardPage = () => {
       setLoading(false);
     };
     loadData();
-  }, [boardId]);
+  }, [fetchBoard, fetchColumns]);
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
@@ -53,25 +57,35 @@ const BoardPage = () => {
 
     setCreating(true);
     try {
-      const colRes = await api.get(`/columns/${boardId}`);
-      const todoColumn = colRes.data.find(
+      const res = await api.get(`/columns/${boardId}`);
+      const todoColumn = res.data.find(
         (col) => col.name.toLowerCase() === "to do"
       );
 
       if (!todoColumn) {
-        alert('No "To Do" column found. Please create one first.');
+        alert('No "To Do" column found.');
         setCreating(false);
         return;
       }
 
-      await api.post(`/tasks/${boardId}/${todoColumn.id}`, {
+      const taskRes = await api.post(`/tasks/${boardId}/${todoColumn.id}`, {
         title: newTask.title,
         description: newTask.description,
       });
 
+      // ✅ FIXED: Update state and ref correctly
+      setColumns((prevCols) => {
+        const updated = prevCols.map((col) =>
+          col.id === todoColumn.id
+            ? { ...col, tasks: [...col.tasks, taskRes.data] }
+            : col
+        );
+        lastStableColumns.current = updated; // ✅ Use the updated state
+        return updated;
+      });
+
       setShowTaskModal(false);
       setNewTask({ title: "", description: "" });
-      await fetchColumns();
     } catch (err) {
       console.error("Error creating task:", err);
       alert("Failed to create task.");
@@ -79,69 +93,83 @@ const BoardPage = () => {
       setCreating(false);
     }
   };
-  
-// ✅ FINAL drag handler – fixes jump-back issue
-const handleDragEnd = async (result) => {
-  const { destination, source, draggableId } = result;
 
-  if (!destination) return;
-  if (
-    destination.droppableId === source.droppableId &&
-    destination.index === source.index
-  )
-    return;
+  // ✅ FINAL flicker-free drag handler
+  const handleDragEnd = async (result) => {
+    const { destination, source, draggableId } = result;
+    if (!destination) return;
 
-  // Clone columns for local manipulation
-  const newColumns = [...columns];
-  const sourceColIndex = newColumns.findIndex(
-    (col) => col.id.toString() === source.droppableId
-  );
-  const destColIndex = newColumns.findIndex(
-    (col) => col.id.toString() === destination.droppableId
-  );
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    )
+      return;
 
-  const sourceCol = newColumns[sourceColIndex];
-  const destCol = newColumns[destColIndex];
-  const draggedTask = sourceCol.tasks[source.index];
+    // ✅ Store previous state for rollback
+    const previousColumns = lastStableColumns.current;
 
-  // ✅ Optimistically update UI immediately
-  const updatedSourceTasks = [...sourceCol.tasks];
-  updatedSourceTasks.splice(source.index, 1);
+    // Local UI update
+    setColumns((prevCols) => {
+      const updated = prevCols.map((col) => ({
+        ...col,
+        tasks: [...col.tasks],
+      }));
 
-  const updatedDestTasks = [...destCol.tasks];
-  updatedDestTasks.splice(destination.index, 0, {
-    ...draggedTask,
-    columnId: destCol.id,
-  });
+      const sourceCol = updated.find(
+        (c) => c.id.toString() === source.droppableId
+      );
+      const destCol = updated.find(
+        (c) => c.id.toString() === destination.droppableId
+      );
 
-  newColumns[sourceColIndex] = { ...sourceCol, tasks: updatedSourceTasks };
-  newColumns[destColIndex] = { ...destCol, tasks: updatedDestTasks };
-  setColumns(newColumns);
+      const [movedTask] = sourceCol.tasks.splice(source.index, 1);
+      movedTask.columnId = destCol.id;
+      destCol.tasks.splice(destination.index, 0, movedTask);
 
-  // ✅ Then persist to backend in background
-  try {
-    const taskId = Number(draggableId);
-    const targetColumnId = Number(destCol.id);
-    const newPosition = Number(destination.index);
-
-    await api.put(`/tasks/move/${taskId}`, {
-      targetColumnId,
-      newPosition,
+      lastStableColumns.current = updated; // store as stable
+      return updated;
     });
 
-    // ✅ Delay refresh slightly to avoid visual flicker / race
-    setTimeout(() => {
-      fetchColumns();
-    }, 250);
-  } catch (err) {
-    console.error("Error updating task position:", err);
-    // Optional fallback: revert UI or refresh immediately
-    fetchColumns();
-  }
-};
+    // Background API call — no setColumns or refetch here
+    try {
+      await api.put(`/tasks/move/${draggableId}`, {
+        targetColumnId: destination.droppableId,
+        newPosition: destination.index,
+      });
+    } catch (err) {
+      console.error("Error updating task position:", err);
+      // ✅ revert to previous stable state on error
+      setColumns(previousColumns);
+      lastStableColumns.current = previousColumns;
+    }
+  };
 
+  // ✅ Delete instantly without refetch or flicker
+  const handleTaskDelete = async (taskId, columnId) => {
+    // ✅ Store previous state for rollback
+    const previousColumns = lastStableColumns.current;
 
+    // Optimistically update UI
+    setColumns((prevCols) => {
+      const updated = prevCols.map((col) =>
+        col.id === columnId
+          ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+          : col
+      );
+      lastStableColumns.current = updated;
+      return updated;
+    });
 
+    try {
+      await api.delete(`/tasks/${taskId}`);
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      alert("Failed to delete task.");
+      // ✅ Revert on error
+      setColumns(previousColumns);
+      lastStableColumns.current = previousColumns;
+    }
+  };
 
   if (loading) return <Loader />;
 
@@ -154,7 +182,6 @@ const handleDragEnd = async (result) => {
 
   return (
     <div className="relative h-screen overflow-y-hidden bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8">
-
       {/* Header */}
       <div className="relative z-10 backdrop-blur-lg bg-white/5 px-6 py-5 md:px-8 md:py-6 rounded-2xl border border-white/10 shadow-xl mb-10 flex justify-between items-center flex-wrap gap-4">
         <div>
@@ -174,7 +201,7 @@ const handleDragEnd = async (result) => {
         </button>
       </div>
 
-      {/* 🧲 Columns with DragDropContext */}
+      {/* Columns */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex flex-wrap md:flex-nowrap justify-start gap-6 md:gap-8 pl-6 md:pl-12 lg:pl-24 pr-4 md:pr-6 pb-8">
           {columns.length > 0 ? (
@@ -186,7 +213,7 @@ const handleDragEnd = async (result) => {
                 <Column
                   column={column}
                   boardId={boardId}
-                  refreshColumns={fetchColumns}
+                  onTaskDelete={handleTaskDelete}
                 />
               </div>
             ))
@@ -198,7 +225,7 @@ const handleDragEnd = async (result) => {
         </div>
       </DragDropContext>
 
-      {/* Modal (unchanged) */}
+      {/* Modal */}
       <AnimatePresence>
         {showTaskModal && (
           <motion.div

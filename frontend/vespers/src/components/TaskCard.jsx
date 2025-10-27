@@ -50,15 +50,13 @@ const TaskCard = ({ task, index, onDelete }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleDelete = async () => {
-    try {
-      await api.delete(`/tasks/${task.id}`);
-      onDelete?.(); // refresh parent after delete
-      setMenuOpen(false);
-    } catch (err) {
-      console.error("Error deleting task:", err);
-    }
-  };
+const handleDelete = () => {
+  onDelete?.(task.id); // parent handles API + UI update
+  setMenuOpen(false);
+};
+
+
+
 
   const draggableId = (task.id ?? task._id ?? `temp-${index}`).toString();
 
