@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import Column from "../components/Column";
 import Loader from "../components/Loader";
+import AddTaskModal from "../components/AddTaskModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext } from "@hello-pangea/dnd";
 
@@ -16,7 +17,6 @@ const BoardPage = () => {
   const [newTask, setNewTask] = useState({ title: "", description: "" });
   const [creating, setCreating] = useState(false);
 
-  // 🔹 keep track of the last stable state to avoid flicker rollback
   const lastStableColumns = useRef([]);
 
   const fetchBoard = useCallback(async () => {
@@ -73,14 +73,13 @@ const BoardPage = () => {
         description: newTask.description,
       });
 
-      // ✅ FIXED: Update state and ref correctly
       setColumns((prevCols) => {
         const updated = prevCols.map((col) =>
           col.id === todoColumn.id
             ? { ...col, tasks: [...col.tasks, taskRes.data] }
             : col
         );
-        lastStableColumns.current = updated; // ✅ Use the updated state
+        lastStableColumns.current = updated;
         return updated;
       });
 
@@ -94,7 +93,6 @@ const BoardPage = () => {
     }
   };
 
-  // ✅ FINAL flicker-free drag handler
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
@@ -105,10 +103,8 @@ const BoardPage = () => {
     )
       return;
 
-    // ✅ Store previous state for rollback
     const previousColumns = lastStableColumns.current;
 
-    // Local UI update
     setColumns((prevCols) => {
       const updated = prevCols.map((col) => ({
         ...col,
@@ -126,11 +122,10 @@ const BoardPage = () => {
       movedTask.columnId = destCol.id;
       destCol.tasks.splice(destination.index, 0, movedTask);
 
-      lastStableColumns.current = updated; // store as stable
+      lastStableColumns.current = updated;
       return updated;
     });
 
-    // Background API call — no setColumns or refetch here
     try {
       await api.put(`/tasks/move/${draggableId}`, {
         targetColumnId: destination.droppableId,
@@ -138,18 +133,14 @@ const BoardPage = () => {
       });
     } catch (err) {
       console.error("Error updating task position:", err);
-      // ✅ revert to previous stable state on error
       setColumns(previousColumns);
       lastStableColumns.current = previousColumns;
     }
   };
 
-  // ✅ Delete instantly without refetch or flicker
   const handleTaskDelete = async (taskId, columnId) => {
-    // ✅ Store previous state for rollback
     const previousColumns = lastStableColumns.current;
 
-    // Optimistically update UI
     setColumns((prevCols) => {
       const updated = prevCols.map((col) =>
         col.id === columnId
@@ -165,7 +156,6 @@ const BoardPage = () => {
     } catch (err) {
       console.error("Error deleting task:", err);
       alert("Failed to delete task.");
-      // ✅ Revert on error
       setColumns(previousColumns);
       lastStableColumns.current = previousColumns;
     }
@@ -182,24 +172,8 @@ const BoardPage = () => {
 
   return (
     <div className="relative h-screen overflow-y-hidden bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8">
-      {/* Header */}
-      <div className="relative z-10 backdrop-blur-lg bg-white/5 px-6 py-5 md:px-8 md:py-6 rounded-2xl border border-white/10 shadow-xl mb-10 flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-cyan-300 to-white">
-            {board?.title || "Untitled Board"}
-          </h1>
-          <p className="text-emerald-200/80 mt-2 text-sm md:text-base max-w-2xl">
-            {board?.description || "No description provided."}
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowTaskModal(true)}
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 md:px-6 md:py-2 rounded-xl shadow-lg font-semibold transition-all duration-200 hover:scale-105"
-        >
-          + Add Task
-        </button>
-      </div>
+      {/* Header Section (Extracted) */}
+      <AddTaskModal board={board} onAddTaskClick={() => setShowTaskModal(true)} />
 
       {/* Columns */}
       <DragDropContext onDragEnd={handleDragEnd}>
