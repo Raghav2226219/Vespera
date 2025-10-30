@@ -4,7 +4,7 @@ import api from "../api/axios";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationPanel from "../components/NotificationPanel";
 import LeftSidebar from "../components/LeftSidebar";
-import { LogOut, Bell, User, LayoutDashboard, Menu } from "lucide-react";
+import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -40,53 +40,13 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white overflow-hidden">
       {/* 🌟 Navbar */}
-      <motion.header
-        initial={{ y: -40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full backdrop-blur-xl bg-white/5 border-b border-white/10 px-6 py-4 flex justify-between items-center shadow-lg z-50"
-      >
-        <div className="flex items-center gap-3">
-          {/* 📱 Mobile Menu Toggle */}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-white/80 hover:text-emerald-400 transition"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">
-            <LayoutDashboard className="w-6 h-6" />
-            Vespera
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-6">
-          {/* 🔔 Notification Button */}
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="hover:text-emerald-300 transition"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
-
-          {/* 👤 Profile Button */}
-          <button
-            onClick={() => navigate("/profile")}
-            className="hover:text-emerald-300 transition"
-          >
-            <User className="w-5 h-5" />
-          </button>
-
-          {/* 🚪 Logout */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-sm font-medium transition"
-          >
-            <LogOut className="w-4 h-4" /> Logout
-          </button>
-        </div>
-      </motion.header>
+      <Navbar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        setShowNotifications={setShowNotifications}
+        navigate={navigate}
+        handleLogout={handleLogout}
+      />
 
       <div className="flex flex-1 relative">
         {/* 🌙 Left Sidebar */}
@@ -117,8 +77,7 @@ const Dashboard = () => {
               Welcome Back, {user?.name || "User"} 🌿
             </h2>
             <p className="text-lg text-emerald-200/80 mb-8 leading-relaxed">
-              “Consistency beats intensity — keep pushing forward and build the
-              extraordinary.”
+              “Consistency beats intensity — keep pushing forward and build the extraordinary.”
             </p>
 
             <motion.div
@@ -134,8 +93,9 @@ const Dashboard = () => {
                 Go to Boards
               </button>
               <button
-              onClick={() => navigate("/newboard")}
-               className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-90 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-[0_0_25px_rgba(16,185,129,0.3)]">
+                onClick={() => navigate("/newboard")}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-90 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-[0_0_25px_rgba(16,185,129,0.3)]"
+              >
                 Create New Task
               </button>
             </motion.div>
@@ -160,15 +120,9 @@ const Dashboard = () => {
         open={showNotifications}
         onClose={() => setShowNotifications(false)}
         notifications={[
-          {
-            message: "Task ‘Update Dashboard UI’ completed ✅",
-            time: "5m ago",
-          },
+          { message: "Task ‘Update Dashboard UI’ completed ✅", time: "5m ago" },
           { message: "New board ‘Marketing’ created 🌿", time: "2h ago" },
-          {
-            message: "You have a pending review request 👀",
-            time: "Yesterday",
-          },
+          { message: "You have a pending review request 👀", time: "Yesterday" },
         ]}
       />
     </div>
