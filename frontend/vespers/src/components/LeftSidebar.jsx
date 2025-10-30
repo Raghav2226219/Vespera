@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ClipboardList, PlusCircle, Upload, X, LayoutDashboard } from "lucide-react";
+import { Archive, Trash2, Upload, X, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LeftSidebar = ({ open, onClose }) => {
@@ -43,22 +43,23 @@ const LeftSidebar = ({ open, onClose }) => {
                 whileHover={{ scale: 1.02 }}
                 className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
               >
-                <PlusCircle className="w-5 h-5 text-emerald-300" /> New Board
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
-              >
                 <Upload className="w-5 h-5 text-emerald-300" /> Import Tasks
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => navigate("/boards")}
+                onClick={() => navigate("/archive")}
                 className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
               >
-                <ClipboardList className="w-5 h-5 text-emerald-300" /> View Boards
+                <Archive className="w-5 h-5 text-emerald-300" /> Archive
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                onClick={() => navigate("/trash")}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
+              >
+                <Trash2 className="w-5 h-5 text-emerald-300" /> Trash
               </motion.button>
             </div>
 
