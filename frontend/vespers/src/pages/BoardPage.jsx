@@ -48,6 +48,7 @@ const BoardPage = () => {
     loadData();
   }, [fetchBoard, fetchColumns]);
 
+  // ✅ Create new task
   const handleCreateTask = async (e) => {
     e.preventDefault();
     if (!newTask.title.trim()) {
@@ -93,6 +94,58 @@ const BoardPage = () => {
     }
   };
 
+  // ✅ Delete task
+  const handleTaskDelete = async (taskId, columnId) => {
+    const previousColumns = lastStableColumns.current;
+
+    setColumns((prevCols) => {
+      const updated = prevCols.map((col) =>
+        col.id === columnId
+          ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+          : col
+      );
+      lastStableColumns.current = updated;
+      return updated;
+    });
+
+    try {
+      await api.delete(`/tasks/${taskId}`);
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      alert("Failed to delete task.");
+      setColumns(previousColumns);
+      lastStableColumns.current = previousColumns;
+    }
+  };
+
+  // ✅ Edit task (instant UI update)
+  const handleTaskUpdate = async (updatedTask) => {
+    try {
+      setColumns((prevCols) => {
+        const updated = prevCols.map((col) => {
+          if (!col.tasks) return col;
+          return {
+            ...col,
+            tasks: col.tasks.map((task) =>
+              task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+            ),
+          };
+        });
+        lastStableColumns.current = updated;
+        return updated;
+      });
+
+      await api.put(`/tasks/${updatedTask.id}`, {
+        title: updatedTask.title,
+        description: updatedTask.description,
+      });
+    } catch (err) {
+      console.error("Error updating task:", err);
+      alert("Failed to update task.");
+    }
+  };
+
+  // ✅ Handle drag and drop
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
@@ -138,29 +191,6 @@ const BoardPage = () => {
     }
   };
 
-  const handleTaskDelete = async (taskId, columnId) => {
-    const previousColumns = lastStableColumns.current;
-
-    setColumns((prevCols) => {
-      const updated = prevCols.map((col) =>
-        col.id === columnId
-          ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
-          : col
-      );
-      lastStableColumns.current = updated;
-      return updated;
-    });
-
-    try {
-      await api.delete(`/tasks/${taskId}`);
-    } catch (err) {
-      console.error("Error deleting task:", err);
-      alert("Failed to delete task.");
-      setColumns(previousColumns);
-      lastStableColumns.current = previousColumns;
-    }
-  };
-
   if (loading) return <Loader />;
 
   if (error)
@@ -172,7 +202,7 @@ const BoardPage = () => {
 
   return (
     <div className="relative h-screen overflow-y-hidden bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8">
-      {/* Header Section (Extracted) */}
+      {/* Header Section */}
       <AddTaskModal board={board} onAddTaskClick={() => setShowTaskModal(true)} />
 
       {/* Columns */}
@@ -188,6 +218,7 @@ const BoardPage = () => {
                   column={column}
                   boardId={boardId}
                   onTaskDelete={handleTaskDelete}
+                  onTaskUpdate={handleTaskUpdate}
                 />
               </div>
             ))
@@ -199,7 +230,7 @@ const BoardPage = () => {
         </div>
       </DragDropContext>
 
-      {/* Modal */}
+      {/* Create Task Modal */}
       <AnimatePresence>
         {showTaskModal && (
           <motion.div

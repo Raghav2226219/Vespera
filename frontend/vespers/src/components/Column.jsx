@@ -2,17 +2,23 @@ import React from "react";
 import TaskCard from "./TaskCard";
 import { Droppable } from "@hello-pangea/dnd";
 
-const Column = ({ column, boardId, onTaskDelete }) => {
-  // ✅ NO local state - use parent's state directly
-  // This prevents sync issues and flicker
-
+const Column = ({ column, boardId, onTaskDelete, onTaskUpdate }) => {
   // ✅ Delete handler that calls parent's onTaskDelete
   const handleDeleteTask = (taskId) => {
-    console.log('Column: Deleting task', taskId, 'from column', column.id);
+    console.log("Column: Deleting task", taskId, "from column", column.id);
     if (onTaskDelete) {
       onTaskDelete(taskId, column.id);
     } else {
-      console.error('onTaskDelete prop is not provided');
+      console.error("onTaskDelete prop is not provided");
+    }
+  };
+
+  // ✅ Update handler that calls parent's onTaskUpdate
+  const handleUpdateTask = (updatedTask) => {
+    if (onTaskUpdate) {
+      onTaskUpdate(updatedTask, column.id);
+    } else {
+      console.error("onTaskUpdate prop is not provided");
     }
   };
 
@@ -48,6 +54,7 @@ const Column = ({ column, boardId, onTaskDelete }) => {
                     task={task}
                     index={index}
                     onDelete={(taskId) => handleDeleteTask(taskId)}
+                    onUpdate={(updatedTask) => handleUpdateTask(updatedTask)}
                   />
                 ))
             ) : (
