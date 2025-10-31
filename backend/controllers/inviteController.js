@@ -36,43 +36,52 @@ const createInvite = async (req, res) => {
 
     // 🌿 Beautiful Vespera HTML Email
     const htmlContent = `
-    <div style="font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #020617, #042f2e, #064e3b); padding: 40px 0; color: #e2e8f0; text-align: center;">
-      <div style="max-width: 600px; margin: auto; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; box-shadow: 0 0 40px rgba(16, 185, 129, 0.15); backdrop-filter: blur(10px); overflow: hidden;">
-        
-        <div style="background: linear-gradient(to right, rgba(16,185,129,0.4), rgba(6,182,212,0.3)); padding: 24px 32px;">
-          <h1 style="margin: 0; font-size: 28px; font-weight: 700; background: linear-gradient(to right, #a7f3d0, #67e8f9, #f0fdf4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            You’ve Been Invited to Vespera 🌱
-          </h1>
+  <div style="font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #020617, #042f2e, #064e3b); padding: 40px 0; color: #e2e8f0; text-align: center;">
+    <div style="max-width: 600px; margin: auto; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; box-shadow: 0 0 40px rgba(16, 185, 129, 0.15); backdrop-filter: blur(10px); overflow: hidden;">
+      
+      <!-- Header -->
+      <div style="background: linear-gradient(135deg, rgba(4,120,87,0.6), rgba(6,182,212,0.4), rgba(15,23,42,0.7)); padding: 28px 32px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px;
+                   background: linear-gradient(to right, #34d399, #5eead4, #99f6e4);
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                   text-shadow: 0 0 15px rgba(6,182,212,0.3);">
+          You’ve Been Invited to <span style="color:#6ee7b7;">Vespera</span> 🌱
+        </h1>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 36px 28px;">
+        <p style="font-size: 16px; color: #d1fae5; margin-bottom: 14px;">Hey there 👋,</p>
+        <p style="font-size: 16px; color: #a7f3d0; line-height: 1.6; margin-bottom: 28px;">
+          You’ve been invited to collaborate on a <strong style="color: #6ee7b7;">Vespera Board</strong> 
+          as a <b style="color: #99f6e4;">${role || "Member"}</b>.
+          Step into the flow — manage, create, and grow together 🌿
+        </p>
+
+        <div style="margin: 40px 0;">
+          <a href="${link}"
+            style="display: inline-block; background: linear-gradient(to right, #10b981, #06b6d4);
+                   color: #0f172a; text-decoration: none; font-weight: 600; padding: 14px 32px;
+                   border-radius: 12px; box-shadow: 0 0 25px rgba(6,182,212,0.4);
+                   transition: all 0.3s ease;">
+            Accept Invite
+          </a>
         </div>
 
-        <div style="padding: 36px 28px;">
-          <p style="font-size: 16px; color: #d1fae5; margin-bottom: 14px;">Hey there 👋,</p>
-          <p style="font-size: 16px; color: #a7f3d0; line-height: 1.6; margin-bottom: 28px;">
-            You’ve been invited to collaborate on a <strong style="color: #6ee7b7;">Vespera Board</strong> as a <b style="color: #99f6e4;">${role || "Member"}</b>.
-            Step into the flow — manage, create, and grow together 🌿
-          </p>
+        <p style="font-size: 14px; color: #86efac;">This link expires in 7 days.</p>
+      </div>
 
-          <div style="margin: 40px 0;">
-            <a href="${link}"
-              style="display: inline-block; background: linear-gradient(to right, #10b981, #06b6d4); color: #0f172a; 
-                    text-decoration: none; font-weight: 600; padding: 14px 32px; border-radius: 12px; 
-                    box-shadow: 0 0 25px rgba(6,182,212,0.4); transition: all 0.3s ease;">
-              Accept Invite
-            </a>
-          </div>
+      <div style="height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"></div>
 
-          <p style="font-size: 14px; color: #86efac;">This link expires in 7 days.</p>
-        </div>
-
-        <div style="height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"></div>
-
-        <div style="padding: 18px; font-size: 13px; color: #94a3b8; background: rgba(2,6,23,0.6);">
-          <p style="margin: 0;">If you didn’t expect this invitation, you can safely ignore it.</p>
-          <p style="margin-top: 8px;">© 2025 Vespera — Built to Create, Together 🌙</p>
-        </div>
+      <!-- Footer -->
+      <div style="padding: 18px; font-size: 13px; color: #94a3b8; background: rgba(2,6,23,0.6);">
+        <p style="margin: 0;">If you didn’t expect this invitation, you can safely ignore it.</p>
+        <p style="margin-top: 8px;">© 2025 Vespera — Built to Create, Together 🌙</p>
       </div>
     </div>
-    `;
+  </div>
+`;
+
 
     await sendEmail({
       to: email,
