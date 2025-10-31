@@ -23,6 +23,11 @@ model User {
 
   inviterLogs   InviteLog[] @relation("InviterLogs")
   acceptedLogs  InviteLog[] @relation("AcceptedLogs")
+
+  // relation fields for audits (boards they archived/trashed)
+  archivedBoards Board[] @relation("ArchivedBy")
+  trashedBoards  Board[] @relation("TrashedBy")
+  boardAudits    BoardAudit[] @relation("ActorAudits")
 }
 
 enum Role {
@@ -52,23 +57,41 @@ enum Gender {
   Other
 }
 
+enum BoardStatus {
+  active
+  archived
+  trashed
+}
+
 model Board {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   title       String
   description String?
-  isArchived  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      BoardStatus @default(active)   // active | archived | trashed
+  archivedAt  DateTime?                         // when archived
+  trashedAt   DateTime?                         // when moved to trash
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   ownerId Int
   owner   User @relation(fields: [ownerId], references: [id])
+
+  // who archived / trashed (optional)
+  archivedById Int? 
+  archivedBy   User? @relation("ArchivedBy", fields: [archivedById], references: [id])
+  trashedById  Int?
+  trashedBy    User? @relation("TrashedBy", fields: [trashedById], references: [id])
 
   members BoardMember[]
   invites Invite[]
   logs    InviteLog[]
   columns Column[]
 
+  audits  BoardAudit[]  @relation("BoardAudits")
+
   @@unique([ownerId, title])
+  @@index([status])
+  @@index([trashedAt])
 }
 
 model BoardMember {
@@ -153,3 +176,22 @@ model Task {
   updatedAt   DateTime @updatedAt
 }
 
+/*
+  BoardAudit - records actions taken on boards (archive, restore, trash, permanent_delete, auto_delete, etc.)
+*/
+model BoardAudit {
+  id        Int      @id @default(autoincrement())
+  boardId   Int
+  actorId   Int?     // user who performed the action (nullable for system/cron auto-deletes)
+  action    String   // e.g. "archive", "restore", "trash", "permanent_delete", "auto_delete"
+  details   Json?    // optional JSON blob with reason, request metadata, etc.
+  ip        String?  
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  board   Board @relation("BoardAudits", fields: [boardId], references: [id], onDelete: Cascade)
+  actor   User? @relation("ActorAudits", fields: [actorId], references: [id])
+
+  @@index([boardId])
+  @@index([actorId])
+}

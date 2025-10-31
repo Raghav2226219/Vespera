@@ -178,3 +178,39 @@ Body: None
 Example:
 DELETE http://localhost:5896/api/tasks/5
 
+
+
+
+# ================== BOARD APIs ==================
+
+# 📋 Base URL
+http://localhost:5000/api/boards
+
+# ------------------ BOARD CRUD ------------------
+GET    /                          → Get all boards of logged-in user
+POST   /create                    → Create a new board
+GET    /:boardId                  → Get a specific board by ID
+PUT    /:boardId/edit             → Update board (title, description)
+DELETE /:boardId/permanent        → Permanently delete a board
+
+# ------------------ ARCHIVE ---------------------
+PUT    /:boardId/archive          → Archive a board
+PUT    /:boardId/unarchive        → Unarchive a board
+
+# ------------------ TRASH -----------------------
+PUT    /:boardId/trash            → Move board to trash
+PUT    /:boardId/restore          → Restore board from trash
+DELETE /:boardId/permanent        → Permanently delete (manual or auto)
+
+# ------------------ MEMBERSHIP ------------------
+GET    /:boardId/members          → Get all members of a board
+POST   /:boardId/members/add      → Add a member to a board
+DELETE /:boardId/members/:userId  → Remove a member from a board
+
+# ------------------ INVITES ---------------------
+POST   /:boardId/invite           → Invite a user via email
+POST   /invite/accept             → Accept a board invite (via token)
+POST   /invite/cancel             → Cancel an invite (owner/admin only)
+
+# ------------------ AUDITS ----------------------
+GET    /:boardId/audits           → View board action logs (archive, delete, restore, etc.)

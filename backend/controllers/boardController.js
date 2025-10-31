@@ -1,6 +1,6 @@
 const prisma = require("../config/db");
 const { createDefaultColumns } = require("./columnController");
-const { Role } = require("@prisma/client"); // ✅ Import Role enum
+const { Role } = require("@prisma/client");
 
 // ======================= GET ALL BOARDS =======================
 const getAllBoards = async (req, res) => {
@@ -10,6 +10,7 @@ const getAllBoards = async (req, res) => {
     const boards = await prisma.board.findMany({
       where: {
         members: { some: { userId } },
+        status: "active", // ✅ exclude trashed boards
       },
       include: {
         members: {
@@ -21,6 +22,7 @@ const getAllBoards = async (req, res) => {
         },
         owner: { select: { id: true, name: true, email: true } },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({ boards });
@@ -39,7 +41,7 @@ const getBoardDetails = async (req, res) => {
       where: { id: boardId },
       include: {
         members: {
-          include: { user: { select: { id: true, name: true, email: true, role: true } } },
+          include: { user: { select: { id: true, name: true, email: true } } },
         },
         owner: { select: { id: true, name: true, email: true } },
       },
@@ -62,7 +64,6 @@ const createBoard = async (req, res) => {
 
     if (!title) return res.status(400).json({ message: "Board title is required." });
 
-    // ✅ Step 0: Check for duplicate title
     const existingBoard = await prisma.board.findFirst({
       where: { ownerId: userId, title },
     });
@@ -71,20 +72,16 @@ const createBoard = async (req, res) => {
       return res.status(400).json({ message: "You already have a board with this title." });
     }
 
-    // ✅ Step 1: Create board
     const board = await prisma.board.create({
       data: { title, description, ownerId: userId },
     });
 
-    // ✅ Step 2: Add user as board member
     await prisma.boardMember.create({
       data: { userId, boardId: board.id, role: Role.Owner },
     });
 
-    // ✅ Step 3: Create default columns
     await createDefaultColumns(board.id);
 
-    // ✅ Step 4: Fetch full board with columns
     const fullBoard = await prisma.board.findUnique({
       where: { id: board.id },
       include: { columns: true },
@@ -107,22 +104,16 @@ const updateBoard = async (req, res) => {
     const { title, description } = req.body;
     const userId = req.user.id;
 
-    if (!title) {
-      return res.status(400).json({ message: "Board title is required." });
-    }
+    if (!title) return res.status(400).json({ message: "Board title is required." });
 
-    // ✅ Step 0: Check for duplicate title for the same owner
     const duplicateBoard = await prisma.board.findFirst({
-      where: { ownerId: userId, title, NOT: { id: boardId } }, // exclude current board
+      where: { ownerId: userId, title, NOT: { id: boardId } },
     });
 
     if (duplicateBoard) {
-      return res
-        .status(400)
-        .json({ message: "You already have another board with this title." });
+      return res.status(400).json({ message: "You already have another board with this title." });
     }
 
-    // ✅ Step 1: Update the board
     const updatedBoard = await prisma.board.update({
       where: { id: boardId },
       data: { title, description },
@@ -135,16 +126,193 @@ const updateBoard = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-// ======================= DELETE BOARD =======================
-const deleteBoard = async (req, res) => {
+
+// ======================= ARCHIVE BOARD =======================
+const archiveBoard = async (req, res) => {
+  try {
+    const boardId = parseInt(req.params.boardId);
+    const userId = req.user.id;
+
+    // ✅ 1. Update the board status to "archived"
+    const board = await prisma.board.update({
+      where: { id: boardId },
+      data: {
+        status: "archived",
+        archivedAt: new Date(),
+        archivedBy: { connect: { id: userId } },
+      },
+    });
+
+    // ✅ 2. Log the action in BoardAudit
+    await prisma.boardAudit.create({
+      data: {
+        boardId,
+        actorId: userId,
+        action: "archive",
+        details: {
+          message: `Board "${board.title}" was archived by user ${userId}`,
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "Board archived successfully.",
+      board,
+    });
+  } catch (err) {
+    console.error("Error archiving board:", err);
+    res.status(500).json({ message: "Server error archiving board." });
+  }
+};
+
+
+// ======================= UNARCHIVE BOARD =======================
+const unarchiveBoard = async (req, res) => {
+  try {
+    const boardId = parseInt(req.params.boardId);
+    const userId = req.user.id;
+
+    // ✅ 1. Update the board back to "active"
+    const board = await prisma.board.update({
+      where: { id: boardId },
+      data: {
+        status: "active",
+        archivedAt: null,
+        archivedBy: { disconnect: true },
+      },
+    });
+
+    // ✅ 2. Log this action
+    await prisma.boardAudit.create({
+      data: {
+        boardId,
+        actorId: userId,
+        action: "restore",
+        details: {
+          message: `Board "${board.title}" was restored from archive by user ${userId}`,
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "Board unarchived successfully.",
+      board,
+    });
+  } catch (err) {
+    console.error("Error unarchiving board:", err);
+    res.status(500).json({ message: "Server error unarchiving board." });
+  }
+};
+
+// ======================= MOVE TO TRASH =======================
+const moveBoardToTrash = async (req, res) => {
   try {
     const boardId = parseInt(req.params.boardId);
 
-    await prisma.board.delete({ where: { id: boardId } });
+    // Update board status → trashed
+    const board = await prisma.board.update({
+      where: { id: boardId },
+      data: {
+        status: "trashed",
+        trashedAt: new Date(),
+        trashedById: req.user.id,
+      },
+    });
 
-    res.json({ message: "Board deleted successfully" });
+    // Log the action in BoardAudit
+    await prisma.boardAudit.create({
+      data: {
+        boardId,
+        actorId: req.user.id,
+        action: "trash",
+        details: {
+          message: `Board "${board.title}" moved to trash.`,
+        },
+        ip: req.ip,
+        userAgent: req.headers["user-agent"] || "unknown",
+      },
+    });
+
+    res.json({ message: "Board moved to trash successfully.", board });
   } catch (err) {
-    console.error("Error deleting board", err);
+    console.error("Error moving board to trash:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ======================= RESTORE FROM TRASH =======================
+const restoreBoardFromTrash = async (req, res) => {
+  try {
+    const boardId = parseInt(req.params.boardId);
+
+    // Update board status → active
+    const board = await prisma.board.update({
+      where: { id: boardId },
+      data: {
+        status: "active",
+        trashedAt: null,
+        trashedById: null,
+      },
+    });
+
+    // Log the action in BoardAudit
+    await prisma.boardAudit.create({
+      data: {
+        boardId,
+        actorId: req.user.id,
+        action: "restore",
+        details: {
+          message: `Board "${board.title}" restored from trash.`,
+        },
+        ip: req.ip,
+        userAgent: req.headers["user-agent"] || "unknown",
+      },
+    });
+
+    res.json({ message: "Board restored successfully.", board });
+  } catch (err) {
+    console.error("Error restoring board:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// ======================= PERMANENT DELETE =======================
+const permanentlyDeleteBoard = async (req, res) => {
+  try {
+    const boardId = parseInt(req.params.boardId);
+
+    // ✅ Step 1: Fetch board first (for audit log message)
+    const board = await prisma.board.findUnique({
+      where: { id: boardId },
+    });
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found." });
+    }
+
+    // ✅ Step 2: Log the permanent deletion BEFORE deleting
+    await prisma.boardAudit.create({
+      data: {
+        boardId: board.id,
+        actorId: req.user.id,
+        action: "permanently_deleted",
+        details: {
+          message: `Board "${board.title}" permanently deleted by user ${req.user.id}.`,
+        },
+        ip: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+      },
+    });
+
+    // ✅ Step 3: Now safely delete the board
+    await prisma.board.delete({
+      where: { id: boardId },
+    });
+
+    res.json({ message: "Board permanently deleted." });
+  } catch (err) {
+    console.error("Error permanently deleting board:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -154,5 +322,9 @@ module.exports = {
   getBoardDetails,
   createBoard,
   updateBoard,
-  deleteBoard,
+  archiveBoard,
+  unarchiveBoard,
+  moveBoardToTrash,
+  restoreBoardFromTrash,
+  permanentlyDeleteBoard,
 };
