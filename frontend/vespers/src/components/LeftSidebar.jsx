@@ -1,9 +1,29 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Archive, Trash2, Upload, X, LayoutDashboard } from "lucide-react";
+import {
+  Archive,
+  Trash2,
+  Upload,
+  X,
+  LayoutDashboard,
+  UserPlus,
+  ClipboardList,
+  Users2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LeftSidebar = ({ open, onClose }) => {
   const navigate = useNavigate();
+
+  const baseButtonClasses =
+    "flex items-center gap-3 p-3 rounded-xl w-full font-medium text-emerald-100 " +
+    "bg-gradient-to-r from-emerald-700/30 to-cyan-700/30 " +
+    "border border-emerald-400/20 hover:from-emerald-600/40 hover:to-cyan-600/40 " +
+    "hover:text-emerald-50 shadow-inner shadow-emerald-900/30 " +
+    "transition-all duration-300";
+
+  const highlightButtonClasses =
+    baseButtonClasses +
+    " border-emerald-400/40 shadow-[0_0_15px_rgba(6,182,212,0.3)]";
 
   return (
     <AnimatePresence>
@@ -37,27 +57,57 @@ const LeftSidebar = ({ open, onClose }) => {
               </button>
             </div>
 
-            {/* Menu Buttons */}
+            {/* Menu Buttons (Alphabetical Order) */}
             <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1 custom-scroll">
+              {/* Archive */}
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
-              >
-                <Upload className="w-5 h-5 text-emerald-300" /> Import Tasks
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.03 }}
                 onClick={() => navigate("/archive")}
-                className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
+                className={baseButtonClasses}
               >
                 <Archive className="w-5 h-5 text-emerald-300" /> Archive
               </motion.button>
 
+              {/* Board Audits */}
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.03 }}
+                onClick={() => navigate("/board-audits")}
+                className={baseButtonClasses}
+              >
+                <ClipboardList className="w-5 h-5 text-emerald-300" /> Board Audits
+              </motion.button>
+
+              {/* Import Tasks */}
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                className={baseButtonClasses}
+              >
+                <Upload className="w-5 h-5 text-emerald-300" /> Import Tasks
+              </motion.button>
+
+              {/* Invite Audits */}
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                onClick={() => navigate("/invite-audits")}
+                className={baseButtonClasses}
+              >
+                <Users2 className="w-5 h-5 text-emerald-300" /> Invite Audits
+              </motion.button>
+
+              {/* Invite Members */}
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                onClick={() => navigate("/invite")}
+                className={highlightButtonClasses}
+              >
+                <UserPlus className="w-5 h-5 text-emerald-300" /> Invite Members
+              </motion.button>
+
+              {/* Trash */}
+              <motion.button
+                whileHover={{ scale: 1.03 }}
                 onClick={() => navigate("/trash")}
-                className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 transition-all duration-300 w-full text-white/90"
+                className={baseButtonClasses}
               >
                 <Trash2 className="w-5 h-5 text-emerald-300" /> Trash
               </motion.button>

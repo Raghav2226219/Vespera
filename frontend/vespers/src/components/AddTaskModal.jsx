@@ -46,17 +46,6 @@ const AddTaskModal = ({
           Details
         </button>
 
-        {/* Invite Members */}
-        <button
-          onClick={onInviteMembers}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium shadow-md 
-          bg-gradient-to-r from-cyan-500 to-cyan-400
-          hover:from-cyan-400 hover:to-cyan-300 
-          text-white transition-all duration-300 hover:scale-105"
-        >
-          <UserPlus className="w-5 h-5" />
-          Invite
-        </button>
 
         {/* Add Task */}
         <button
