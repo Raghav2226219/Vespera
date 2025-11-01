@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../api/axios";
+import ActionDonePopup from "../components/ActionDonePopup"; // ✅ popup import
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -14,7 +15,7 @@ export default function NewBoard() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [showPopup, setShowPopup] = useState(false); // ✅ popup state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,14 +23,21 @@ export default function NewBoard() {
       setError("Title is required.");
       return;
     }
+
     setError("");
-    setSuccess("");
     setLoading(true);
 
     try {
-      const res = await api.post("/board/create", { title, description });
-      setSuccess("Board created successfully!");
-      setTimeout(() => navigate("/boards"), 1200);
+      await api.post("/board/create", { title, description });
+
+      // ✅ Show success popup
+      setShowPopup(true);
+
+      // Auto-close popup & redirect
+      setTimeout(() => {
+        setShowPopup(false);
+        navigate("/boards");
+      }, 1800);
     } catch (err) {
       console.error("Error creating board:", err);
       setError(err.response?.data?.message || "Failed to create board.");
@@ -40,7 +48,7 @@ export default function NewBoard() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white py-16 px-6 flex items-center justify-center relative overflow-hidden">
-      {/* Glowing Background Blobs */}
+      {/* Animated Backgrounds */}
       <motion.div
         animate={{ x: [0, 40, -40, 0], y: [0, -30, 30, 0] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
@@ -52,13 +60,12 @@ export default function NewBoard() {
         className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-500/10 blur-[120px] rounded-full"
       />
 
-      {/* Form Container */}
+      {/* Form */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="relative z-10 w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/10 
-                   rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] p-8"
+        className="relative z-10 w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] p-8"
         style={{
           background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
         }}
@@ -75,9 +82,7 @@ export default function NewBoard() {
               placeholder="Enter board title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 
-                         text-white placeholder-emerald-200/50 focus:outline-none 
-                         focus:border-emerald-400 transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-emerald-200/50 focus:outline-none focus:border-emerald-400 transition"
             />
           </div>
 
@@ -88,9 +93,7 @@ export default function NewBoard() {
               placeholder="Describe your board..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 
-                         text-white placeholder-emerald-200/50 focus:outline-none 
-                         focus:border-emerald-400 transition resize-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-emerald-200/50 focus:outline-none focus:border-emerald-400 transition resize-none"
             />
           </div>
 
@@ -100,20 +103,10 @@ export default function NewBoard() {
             </p>
           )}
 
-          {success && (
-            <p className="text-emerald-300 text-sm text-center bg-emerald-900/20 py-2 rounded-md">
-              {success}
-            </p>
-          )}
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 mt-3 rounded-xl font-semibold text-gray-900
-                       bg-gradient-to-r from-emerald-400 to-cyan-400
-                       shadow-[0_0_25px_rgba(16,185,129,0.3)] 
-                       hover:scale-[1.03] active:scale-[0.97] 
-                       transition-all disabled:opacity-50"
+            className="w-full py-3 mt-3 rounded-xl font-semibold text-gray-900 bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all disabled:opacity-50"
           >
             {loading ? "Creating..." : "Create Board"}
           </button>
@@ -126,6 +119,9 @@ export default function NewBoard() {
           ← Back to Boards
         </button>
       </motion.div>
+
+      {/* ✅ Success popup */}
+      <ActionDonePopup show={showPopup} message="Board created successfully!" />
     </div>
   );
 }
