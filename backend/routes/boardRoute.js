@@ -14,6 +14,7 @@ const {
   moveBoardToTrash,
   restoreBoardFromTrash,
   permanentlyDeleteBoard,
+  fetchBoardInfo
 } = require("../controllers/boardController");
 
 const router = express.Router();
@@ -39,5 +40,7 @@ router.patch("/:boardId/unarchive", protect, checkBoardMember, authorizeBoardRol
 router.patch("/:boardId/trash", protect, checkBoardMember, authorizeBoardRoles("Owner"), moveBoardToTrash);
 router.patch("/:boardId/restore", protect, checkBoardMember, authorizeBoardRoles("Owner"), restoreBoardFromTrash);
 router.delete("/:boardId/permanent", protect, checkBoardMember, authorizeBoardRoles("Owner"), permanentlyDeleteBoard);
+
+router.get("/:boardId/info", protect, fetchBoardInfo);
 
 module.exports = router;

@@ -356,6 +356,41 @@ const getAllTrashedBoards = async (req, res) => {
   }
 };
 
+// ======================= Fetch Board Info =======================
+const fetchBoardInfo = async (req, res) => {
+  try {
+    const boardId = parseInt(req.params.boardId);
+
+    const board = await prisma.board.findUnique({
+      where: { id: boardId },
+      include: {
+        owner: { select: { id: true, name: true, email: true } },
+        archivedBy: { select: { id: true, name: true, email: true } },
+        trashedBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (!board) return res.status(404).json({ message: "Board not found" });
+
+    res.json({
+      id: board.id,
+      title: board.title,
+      description: board.description,
+      status: board.status,
+      createdAt: board.createdAt,
+      updatedAt: board.updatedAt,
+      archivedAt: board.archivedAt,
+      trashedAt: board.trashedAt,
+      owner: board.owner,
+      archivedBy: board.archivedBy,
+      trashedBy: board.trashedBy,
+    });
+  } catch (err) {
+    console.error("Error fetching board info:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // ======================= EXPORT =======================
 module.exports = {
   getAllBoards,
@@ -370,4 +405,5 @@ module.exports = {
   moveBoardToTrash,
   restoreBoardFromTrash,
   permanentlyDeleteBoard,
+  fetchBoardInfo
 };

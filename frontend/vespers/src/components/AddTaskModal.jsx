@@ -1,13 +1,18 @@
 import React from "react";
-import { Users, UserPlus, Info } from "lucide-react";
+import { Users, Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AddTaskModal = ({
   board,
   onAddTaskClick,
   onViewMembers,
-  onInviteMembers,
-  onViewDetails,
 }) => {
+  const navigate = useNavigate();
+
+  const handleViewDetails = () => {
+    navigate(`/board-details/${board?.id}`);
+  };
+
   return (
     <div className="relative z-10 backdrop-blur-xl bg-gradient-to-r from-gray-950 via-emerald-950 to-emerald-900 px-6 py-5 md:px-8 md:py-6 rounded-2xl border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)] mb-10 flex justify-between items-center flex-wrap gap-4">
       {/* Board Info */}
@@ -36,7 +41,7 @@ const AddTaskModal = ({
 
         {/* Board Details */}
         <button
-          onClick={onViewDetails}
+          onClick={handleViewDetails}
           className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium shadow-md 
           bg-gradient-to-r from-emerald-500 to-cyan-500
           hover:from-emerald-400 hover:to-cyan-400 
@@ -45,7 +50,6 @@ const AddTaskModal = ({
           <Info className="w-5 h-5" />
           Details
         </button>
-
 
         {/* Add Task */}
         <button
