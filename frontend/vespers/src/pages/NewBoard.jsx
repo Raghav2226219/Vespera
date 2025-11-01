@@ -15,7 +15,7 @@ export default function NewBoard() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showPopup, setShowPopup] = useState(false); // ✅ popup state
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,10 +30,8 @@ export default function NewBoard() {
     try {
       await api.post("/board/create", { title, description });
 
-      // ✅ Show success popup
       setShowPopup(true);
 
-      // Auto-close popup & redirect
       setTimeout(() => {
         setShowPopup(false);
         navigate("/boards");
@@ -88,13 +86,18 @@ export default function NewBoard() {
 
           <div>
             <label className="block text-sm text-emerald-200/80 mb-1">Description</label>
-            <textarea
-              rows={4}
-              placeholder="Describe your board..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-emerald-200/50 focus:outline-none focus:border-emerald-400 transition resize-none"
-            />
+            <div
+              className="rounded-xl bg-white/5 border border-white/10 focus-within:border-emerald-400 transition"
+              style={{ maxHeight: "160px", overflowY: "auto" }}
+            >
+              <textarea
+                rows={4}
+                placeholder="Describe your board..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="custom-scrollbar w-full px-4 py-2.5 bg-transparent text-white placeholder-emerald-200/50 focus:outline-none resize-none"
+              />
+            </div>
           </div>
 
           {error && (
