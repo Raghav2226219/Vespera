@@ -1,16 +1,16 @@
 import React from "react";
-import { Users, Info } from "lucide-react";
+import { Users, Info, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const AddTaskModal = ({
-  board,
-  onAddTaskClick,
-  onViewMembers,
-}) => {
+const AddTaskModal = ({ board, onAddTaskClick, onViewMembers }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = () => {
     navigate(`/board-details/${board?.id}`);
+  };
+
+  const handleDashboard = () => {
+    navigate("/dashboard");
   };
 
   return (
@@ -27,6 +27,18 @@ const AddTaskModal = ({
 
       {/* Action Buttons */}
       <div className="flex items-center gap-3 flex-wrap">
+        {/* Dashboard */}
+        <button
+          onClick={handleDashboard}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium shadow-md 
+          bg-gradient-to-r from-gray-800 to-emerald-700
+          hover:from-gray-700 hover:to-emerald-600 
+          text-emerald-200 transition-all duration-300 hover:scale-105"
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          Dashboard
+        </button>
+
         {/* View Members */}
         <button
           onClick={onViewMembers}
