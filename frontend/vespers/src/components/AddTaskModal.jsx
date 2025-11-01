@@ -13,6 +13,14 @@ const AddTaskModal = ({ board, onAddTaskClick, onViewMembers }) => {
     navigate("/dashboard");
   };
 
+  // ✨ Truncate description to 20 words
+  const truncateDescription = (text = "", limit = 15) => {
+    const words = text.trim().split(/\s+/);
+    return words.length > limit
+      ? words.slice(0, limit).join(" ") + "..."
+      : text;
+  };
+
   return (
     <div className="relative z-10 backdrop-blur-xl bg-gradient-to-r from-gray-950 via-emerald-950 to-emerald-900 px-6 py-5 md:px-8 md:py-6 rounded-2xl border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)] mb-10 flex justify-between items-center flex-wrap gap-4">
       {/* Board Info */}
@@ -21,7 +29,9 @@ const AddTaskModal = ({ board, onAddTaskClick, onViewMembers }) => {
           {board?.title || "Untitled Board"}
         </h1>
         <p className="text-emerald-200/80 mt-2 text-sm md:text-base max-w-2xl">
-          {board?.description || "No description provided."}
+          {board?.description
+            ? truncateDescription(board.description)
+            : "No description provided."}
         </p>
       </div>
 
