@@ -17,7 +17,7 @@ export default function ViewBoards() {
       />
 
       {/* Main Boards Section */}
-      <BoardsAddSection />
+      <BoardsAddSection endpoint="/board/all" />
     </div>
   );
 }

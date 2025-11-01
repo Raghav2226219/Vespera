@@ -96,7 +96,7 @@ const Dashboard = () => {
                 onClick={() => navigate("/newboard")}
                 className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-90 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-[0_0_25px_rgba(16,185,129,0.3)]"
               >
-                Create New Task
+                Create New Board
               </button>
             </motion.div>
           </motion.div>

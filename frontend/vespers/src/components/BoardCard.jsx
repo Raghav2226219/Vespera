@@ -2,9 +2,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { MoreVertical } from "lucide-react";
-import api from "../api/axios"; // ✅ Ensure this exists
+import api from "../api/axios";
 
-const DropdownPortal = ({ rect, onClose, children }) => {
+// ✅ Dropdown rendered via portal
+const DropdownPortal = ({ rect, children }) => {
   if (!rect) return null;
 
   const style = {
@@ -14,12 +15,7 @@ const DropdownPortal = ({ rect, onClose, children }) => {
     zIndex: 9999,
   };
 
-  return createPortal(
-    <div style={style} onMouseDown={(e) => e.stopPropagation()}>
-      {children}
-    </div>,
-    document.body
-  );
+  return createPortal(<div style={style}>{children}</div>, document.body);
 };
 
 // ✅ Glassmorphic Animated Edit Modal
@@ -105,17 +101,20 @@ const EditModal = ({ board, onClose, onUpdate }) => {
   );
 };
 
-const BoardCard = ({ board, onOpen }) => {
+const BoardCard = ({ board, onOpen, onTrashed  }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [btnRect, setBtnRect] = useState(null);
   const menuButtonRef = useRef(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [boardData, setBoardData] = useState(board);
 
-  // Close dropdown when clicking outside
+  // ✅ Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (menuButtonRef.current && !menuButtonRef.current.contains(e.target)) {
+      if (
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(e.target)
+      ) {
         setMenuOpen(false);
       }
     };
@@ -144,11 +143,32 @@ const BoardCard = ({ board, onOpen }) => {
     setMenuOpen((prev) => !prev);
   };
 
-  const handleMenuAction = (action) => {
+  // ✅ Handle archive & trash API calls
+  const handleMenuAction = async (action) => {
     setMenuOpen(false);
-    if (action === "archive") console.log("Archive", board.id);
-    if (action === "edit") setEditModalOpen(true);
-    if (action === "trash") console.log("Move to Trash", board.id);
+
+    if (action === "edit") {
+      setEditModalOpen(true);
+      return;
+    }
+
+    const endpointMap = {
+      archive: `/board/${board.id}/archive`,
+      trash: `/board/${board.id}/trash`,
+    };
+
+    try {
+      const res = await api.patch(endpointMap[action]);
+      alert(
+        `${action === "archive" ? "Archived" : "Moved to trash"} successfully`
+      );
+
+      // ✅ Remove this board from UI immediately
+      if (onTrashed) onTrashed(board.id);
+    } catch (err) {
+      console.error(`Error performing ${action}:`, err);
+      alert(err.response?.data?.message || `Failed to ${action} board`);
+    }
   };
 
   return (
@@ -185,17 +205,20 @@ const BoardCard = ({ board, onOpen }) => {
                    group-hover:shadow-[0_0_50px_rgba(16,185,129,0.5)]
                    transition-all duration-700 ease-out"
         >
+          {/* Animated outline */}
           <motion.div
             animate={{ opacity: [0.2, 0.6, 0.2] }}
             transition={{ repeat: Infinity, duration: 3 }}
             className="absolute inset-0 rounded-3xl border border-emerald-400/30 pointer-events-none"
           />
 
+          {/* Gradient shimmer overlay */}
           <motion.div
             className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-400/5 via-transparent to-cyan-400/5 opacity-0
                      group-hover:opacity-100 transition-opacity duration-700"
           />
 
+          {/* Light streak sweep */}
           <motion.div
             animate={{ x: ["-150%", "150%"] }}
             transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
@@ -251,35 +274,48 @@ const BoardCard = ({ board, onOpen }) => {
           transition={{ duration: 0.6 }}
         />
 
-        {/* Dropdown */}
-        {menuOpen && (
-          <DropdownPortal rect={btnRect} onClose={() => setMenuOpen(false)}>
-            <div
-              className="w-44 rounded-xl bg-gray-900/95 border border-emerald-400/20 shadow-xl backdrop-blur-md z-50 overflow-hidden"
-              onMouseLeave={() => setMenuOpen(false)}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => handleMenuAction("archive")}
-                className="w-full text-left px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/20 transition"
+        {/* ✅ Dropdown */}
+        <AnimatePresence>
+          {menuOpen && (
+            <DropdownPortal rect={btnRect}>
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="w-44 rounded-xl bg-gray-900/95 border border-emerald-400/20 shadow-xl backdrop-blur-md z-50 overflow-hidden"
               >
-                Archive
-              </button>
-              <button
-                onClick={() => handleMenuAction("edit")}
-                className="w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20 transition"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleMenuAction("trash")}
-                className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-red-500/20 transition"
-              >
-                Move to Trash
-              </button>
-            </div>
-          </DropdownPortal>
-        )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMenuAction("archive");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/20 transition"
+                >
+                  Archive
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMenuAction("edit");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20 transition"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMenuAction("trash");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-red-500/20 transition"
+                >
+                  Move to Trash
+                </button>
+              </motion.div>
+            </DropdownPortal>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* ✅ Glassmorphic Edit Modal */}

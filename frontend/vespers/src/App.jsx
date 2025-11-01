@@ -13,6 +13,7 @@ import ProfileCheck from "./pages/Profile/ProfileCheck";
 import ProfileMe from "./pages/Profile/ProfileMe";
 import ProfileCreate from "./pages/Profile/ProfileCreate";
 import BoardPage from "./pages/BoardPage";
+import TrashPage from "./pages/TrashPage";
 
 function App() {
   return (
@@ -54,6 +55,7 @@ const AnimatedRoutes = () => {
           <Route path="/boards" element={<ViewBoards />} />
           <Route path="/newboard" element={<NewBoard />} />
           <Route path="/board/:boardId" element={<BoardPage/>} />
+          <Route path="/trash" element={<TrashPage />} />
         </Routes>
       )}
     </>

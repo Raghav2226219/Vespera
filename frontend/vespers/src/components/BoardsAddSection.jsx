@@ -33,7 +33,6 @@ const BoardsAddSection = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const closeTimeoutRef = useRef(null);
 
   // Fetch boards
@@ -58,7 +57,6 @@ const BoardsAddSection = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       let filtered = [...boards];
-
       if (search.trim()) {
         const lower = search.toLowerCase();
         filtered = filtered.filter(
@@ -67,10 +65,9 @@ const BoardsAddSection = () => {
             b.description?.toLowerCase().includes(lower)
         );
       }
-
       filtered = sortBoards(filtered, sortOption);
       setFilteredBoards(filtered);
-    }, 500);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [search, boards, sortOption]);
@@ -107,6 +104,12 @@ const BoardsAddSection = () => {
     navigate(`/board/${board.id}`);
   };
 
+  // ✅ This function is called when a board is trashed successfully
+  const handleBoardTrashed = (boardId) => {
+    setBoards((prev) => prev.filter((b) => b.id !== boardId));
+    setFilteredBoards((prev) => prev.filter((b) => b.id !== boardId));
+  };
+
   return (
     <motion.div
       initial="hidden"
@@ -115,9 +118,11 @@ const BoardsAddSection = () => {
       className="max-w-7xl mx-auto relative"
     >
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 
-                         backdrop-blur-lg bg-white/5 px-6 py-4 rounded-2xl border border-white/10 
-                         shadow-xl relative z-[50]">
+      <header
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 
+                   backdrop-blur-lg bg-white/5 px-6 py-4 rounded-2xl border border-white/10 
+                   shadow-xl relative z-[50]"
+      >
         <div>
           <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-cyan-300 to-white">
             Your Boards
@@ -249,7 +254,12 @@ const BoardsAddSection = () => {
       ) : (
         <div className="relative z-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 justify-items-center">
           {filteredBoards.map((b) => (
-            <BoardCard key={b.id} board={b} onOpen={openBoard} />
+            <BoardCard
+              key={b.id}
+              board={b}
+              onOpen={openBoard}
+              onTrashed={() => handleBoardTrashed(b.id)} // ✅ Auto remove when trashed
+            />
           ))}
         </div>
       )}
