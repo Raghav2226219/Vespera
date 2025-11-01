@@ -4,6 +4,9 @@ const { checkBoardMember, authorizeBoardRoles } = require("../middleware/boardAu
 const {
   getAllBoards,
   getBoardDetails,
+  getAllArchivedBoards,
+  getArchivedBoardById,
+  getAllTrashedBoards,
   createBoard,
   updateBoard,
   archiveBoard,
@@ -15,31 +18,26 @@ const {
 
 const router = express.Router();
 
-// ✅ Get all boards
+// ✅ Active boards
 router.get("/all", protect, getAllBoards);
-
-// ✅ Create new board
-router.post("/create", protect, createBoard);
-
-// ✅ Get board details
 router.get("/:boardId", protect, checkBoardMember, getBoardDetails);
 
-// ✅ Update board (only Owner)
+// ✅ Archived boards
+router.get("/archived/all", protect, getAllArchivedBoards);
+router.get("/archived/:boardId", protect, getArchivedBoardById);
+
+// ✅ Trashed boards
+router.get("/trashed/all", protect, getAllTrashedBoards);
+
+// ✅ Create & Modify
+router.post("/create", protect, createBoard);
 router.put("/:boardId", protect, checkBoardMember, authorizeBoardRoles("Owner"), updateBoard);
 
-// ✅ Archive board
+// ✅ Archive / Unarchive / Trash / Restore / Delete
 router.patch("/:boardId/archive", protect, checkBoardMember, authorizeBoardRoles("Owner"), archiveBoard);
-
-// ✅ Unarchive board
 router.patch("/:boardId/unarchive", protect, checkBoardMember, authorizeBoardRoles("Owner"), unarchiveBoard);
-
-// ✅ Move board to Trash (soft delete)
 router.patch("/:boardId/trash", protect, checkBoardMember, authorizeBoardRoles("Owner"), moveBoardToTrash);
-
-// ✅ Restore board from Trash
 router.patch("/:boardId/restore", protect, checkBoardMember, authorizeBoardRoles("Owner"), restoreBoardFromTrash);
-
-// ✅ Permanently delete board (after 15 days or manual)
 router.delete("/:boardId/permanent", protect, checkBoardMember, authorizeBoardRoles("Owner"), permanentlyDeleteBoard);
 
 module.exports = router;
