@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, LayoutDashboard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const dropdownVariants = {
   hidden: { opacity: 0, y: -8 },
@@ -16,11 +17,16 @@ const TrashHeader = ({
   dropdownOpen,
   setDropdownOpen,
 }) => {
+  const navigate = useNavigate();
   const closeTimeoutRef = useRef(null);
 
   const handleSort = (value) => {
     setSortOption(value);
     setDropdownOpen(false);
+  };
+
+  const handleDashboard = () => {
+    navigate("/dashboard");
   };
 
   return (
@@ -41,6 +47,19 @@ const TrashHeader = ({
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-stretch sm:items-center">
+
+        {/* 🧭 Dashboard Button */}
+        <button
+          onClick={handleDashboard}
+          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium shadow-md 
+                     bg-gradient-to-r from-gray-800 to-emerald-700
+                     hover:from-gray-700 hover:to-emerald-600 
+                     text-emerald-200 transition-all duration-300 hover:scale-105"
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          Dashboard
+        </button>
+
         {/* Sort Dropdown */}
         <div
           className="relative"
