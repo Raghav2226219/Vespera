@@ -28,3 +28,12 @@
   scrollbar-color: #34d399 rgba(20, 83, 45, 0.15);
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  box-shadow: 0 0 0px 1000px rgba(23, 37, 42, 0.3) inset !important;
+  -webkit-text-fill-color: #a7f3d0 !important; /* emerald-300 */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+
