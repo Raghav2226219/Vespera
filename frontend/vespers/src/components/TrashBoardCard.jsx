@@ -2,38 +2,38 @@ import { motion } from "framer-motion";
 import api from "../api/axios";
 import { useState } from "react";
 
-const TrashBoardCard = ({ board, onActionComplete  }) => {
+const TrashBoardCard = ({ board, onActionComplete }) => {
   const [restoringId, setRestoringId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   // 🟢 Restore Board
-const handleRestore = async (id) => {
-  setRestoringId(id);
-  try {
-    await api.patch(`/board/${id}/restore`);
-    onActionComplete?.(id); // 👈 Notify parent
-  } catch (err) {
-    console.error("Restore failed:", err);
-    alert(err.response?.data?.message || "Failed to restore board");
-  } finally {
-    setRestoringId(null);
-  }
-};
+  const handleRestore = async (id) => {
+    setRestoringId(id);
+    try {
+      await api.patch(`/board/${id}/restore`);
+      onActionComplete?.(id); // 👈 Notify parent to remove this card only
+    } catch (err) {
+      console.error("Restore failed:", err);
+      alert(err.response?.data?.message || "Failed to restore board");
+    } finally {
+      setRestoringId(null);
+    }
+  };
 
-const handlePermanentDelete = async (id) => {
-  if (!window.confirm("Are you sure you want to permanently delete this board?")) return;
-  setDeletingId(id);
-  try {
-    await api.delete(`/board/${id}/permanent`);
-    onActionComplete?.(id); // 👈 Notify parent
-  } catch (err) {
-    console.error("Delete failed:", err);
-    alert(err.response?.data?.message || "Failed to delete board");
-  } finally {
-    setDeletingId(null);
-  }
-};
-
+  // 🔴 Permanent Delete
+  const handlePermanentDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this board?")) return;
+    setDeletingId(id);
+    try {
+      await api.delete(`/board/${id}/permanent`);
+      onActionComplete?.(id); // 👈 Notify parent to remove this card only
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert(err.response?.data?.message || "Failed to delete board");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <motion.div
@@ -93,7 +93,6 @@ const handlePermanentDelete = async (id) => {
             </p>
           </div>
 
-          {/* Always visible “Trashed on” info */}
           <div className="text-xs text-emerald-200/80 mt-4">
             🗓 Trashed on{" "}
             <span className="text-emerald-300">
@@ -102,7 +101,7 @@ const handlePermanentDelete = async (id) => {
           </div>
         </div>
 
-        {/* ✅ Hover Overlay (clear buttons, light blur) */}
+        {/* Hover Overlay */}
         <motion.div
           initial={{ opacity: 0 }}
           whileHover={{ opacity: 1 }}
@@ -111,7 +110,6 @@ const handlePermanentDelete = async (id) => {
         >
           <div className="absolute inset-0 rounded-3xl bg-black/25 backdrop-blur-[1px]"></div>
 
-          {/* Buttons */}
           <div className="relative z-30 h-full flex items-center justify-center gap-5">
             <motion.button
               disabled={!!restoringId || !!deletingId}

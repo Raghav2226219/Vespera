@@ -18,7 +18,7 @@ const TrashPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ Fetch trashed boards
+  // ✅ Fetch trashed boards once
   useEffect(() => {
     const fetchTrashedBoards = async () => {
       try {
@@ -40,7 +40,6 @@ const TrashPage = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       let filtered = [...boards];
-
       if (search.trim()) {
         const lower = search.toLowerCase();
         filtered = filtered.filter(
@@ -49,11 +48,9 @@ const TrashPage = () => {
             b.description?.toLowerCase().includes(lower)
         );
       }
-
       filtered = sortBoards(filtered, sortOption);
       setFilteredBoards(filtered);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [search, boards, sortOption]);
 
@@ -80,23 +77,18 @@ const TrashPage = () => {
     }
   };
 
-  // ✅ Handle Restore/Delete instantly
-  const handleRestore = async (boardId) => {
-    try {
-      await api.put(`/board/${boardId}/restore`);
-      setBoards((prev) => prev.filter((b) => b._id !== boardId));
-    } catch (err) {
-      console.error("Error restoring board:", err);
-    }
-  };
-
-  const handleDelete = async (boardId) => {
-    try {
-      await api.delete(`/board/${boardId}/delete`);
-      setBoards((prev) => prev.filter((b) => b._id !== boardId));
-    } catch (err) {
-      console.error("Error deleting board:", err);
-    }
+  // ✅ Instantly remove a card after delete/restore
+  const handleActionComplete = (boardId) => {
+    setBoards((prev) =>
+      prev.filter(
+        (b) => b._id !== boardId && b.id !== boardId // 👈 fixed comparison for both cases
+      )
+    );
+    setFilteredBoards((prev) =>
+      prev.filter(
+        (b) => b._id !== boardId && b.id !== boardId // 👈 fixed comparison for both cases
+      )
+    );
   };
 
   return (
@@ -134,11 +126,7 @@ const TrashPage = () => {
               <TrashBoardCard
                 key={b._id || b.id}
                 board={b}
-                onActionComplete={() => {
-                  setBoards((prev) =>
-                    prev.filter((board) => board._id !== b._id)
-                  );
-                }}
+                onActionComplete={handleActionComplete}
               />
             ))}
           </div>
