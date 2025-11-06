@@ -17,6 +17,7 @@ import TrashPage from "./pages/TrashPage";
 import BoardDetails from "./pages/BoardDetails";
 import InviteMembers from "./pages/InviteMembers";
 import ArchivePage from "./pages/ArchivePage";
+import InviteAuditsAllPage from "./pages/InviteAuditsAllPage";
 
 function App() {
   return (
@@ -62,6 +63,7 @@ const AnimatedRoutes = () => {
           <Route path="/board-details/:id" element={<BoardDetails />} />
           <Route path="/invite" element={<InviteMembers />} />
           <Route path="/archive" element={<ArchivePage />} />
+          <Route path="/invite-audits" element={<InviteAuditsAllPage />} />
         </Routes>
       )}
     </>

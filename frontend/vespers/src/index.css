@@ -3,23 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 🌿 Custom Scrollbar Styling for Columns */
+/* === Custom Scrollbar (matches Column.jsx) === */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(20, 83, 45, 0.15);
-  border-radius: 8px;
-}
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #34d399, #06b6d4);
-  border-radius: 8px;
+  background: linear-gradient(to bottom, rgba(16, 185, 129, 0.5), rgba(6, 182, 212, 0.4));
+  border-radius: 10px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #10b981, #0891b2);
+  background: linear-gradient(to bottom, rgba(16, 185, 129, 0.8), rgba(6, 182, 212, 0.7));
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
 }
 
 /* Firefox Support */
@@ -37,3 +34,35 @@ input:-webkit-autofill:focus {
 }
 
 
+.react-calendar {
+  background: rgba(10, 30, 25, 0.8) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+  color: #d1fae5 !important;
+  font-family: "Inter", sans-serif;
+}
+
+.react-calendar__tile {
+  background: transparent !important;
+  color: #a7f3d0 !important;
+  border-radius: 0.6rem !important;
+  transition: all 0.2s ease;
+}
+.react-calendar__tile--now {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #6ee7b7 !important;
+}
+.react-calendar__tile--active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(34, 211, 238, 0.4)) !important;
+  color: white !important;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+}
+.react-calendar__tile:hover {
+  background: rgba(16, 185, 129, 0.2) !important;
+}
+.react-calendar__navigation button {
+  color: #6ee7b7 !important;
+  border-radius: 0.5rem !important;
+}
