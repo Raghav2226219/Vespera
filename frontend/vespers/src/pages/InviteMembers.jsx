@@ -1,9 +1,10 @@
+// src/pages/InviteMembers.jsx
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
 import ActionDonePopup from "../components/ActionDonePopup";
 import InviteForm from "../components/InviteForm";
 import InviteHeader from "../components/InviteHeader";
+import Toast from "../components/Toast";
 
 const InviteMembers = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -48,26 +49,10 @@ const InviteMembers = () => {
         initial="hidden"
         animate="visible"
         exit={{ opacity: 0, y: 20 }}
-        className="relative z-10 w-full flex flex-col items-center mt-20" 
-        // ⬆️ Increased top margin to move form lower (was -10px before)
+        className="relative z-10 w-full flex flex-col items-center mt-20"
       >
-        {/* Toast (5 seconds) */}
-        <AnimatePresence>
-          {showToast && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="fixed top-8 right-8 bg-gradient-to-r from-emerald-500 to-cyan-400 
-                         text-gray-900 font-semibold shadow-[0_0_20px_rgba(16,185,129,0.4)] 
-                         px-6 py-3 rounded-xl flex items-center gap-3 z-[9999]"
-            >
-              <CheckCircle className="w-5 h-5 text-gray-900" />
-              <span>Invite sent successfully!</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* ✅ Reusable Toast */}
+        <Toast show={showToast} message="Invite sent successfully!" />
 
         {/* Popup */}
         <ActionDonePopup
