@@ -1,17 +1,20 @@
+// src/components/TrashBoardCard.jsx
 import { motion } from "framer-motion";
 import api from "../api/axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TrashBoardCard = ({ board, onActionComplete }) => {
   const [restoringId, setRestoringId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isCritical, setIsCritical] = useState(false); // ⚠️ < 24h state
 
   // 🟢 Restore board
   const handleRestore = async (id) => {
     setRestoringId(id);
     try {
       await api.patch(`/board/${id}/restore`);
-      onActionComplete?.(id); // remove instantly
+      onActionComplete?.(id);
     } catch (err) {
       console.error("Restore failed:", err);
       alert(err.response?.data?.message || "Failed to restore board");
@@ -26,7 +29,7 @@ const TrashBoardCard = ({ board, onActionComplete }) => {
     setDeletingId(id);
     try {
       await api.delete(`/board/${id}/permanent`);
-      onActionComplete?.(id); // remove instantly
+      onActionComplete?.(id);
     } catch (err) {
       console.error("Delete failed:", err);
       alert(err.response?.data?.message || "Failed to delete board");
@@ -34,6 +37,47 @@ const TrashBoardCard = ({ board, onActionComplete }) => {
       setDeletingId(null);
     }
   };
+
+  // 🧮 Countdown logic (15 days from trashedAt)
+  useEffect(() => {
+    if (!board.trashedAt) return;
+    const trashedTime = new Date(board.trashedAt).getTime();
+    const deleteAfter = trashedTime + 15 * 24 * 60 * 60 * 1000;
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = deleteAfter - now;
+
+      if (diff <= 0) {
+        setTimeLeft("Deleting soon...");
+        setIsCritical(true);
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / (24 * 3600));
+      const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      // Format
+      if (days >= 1) {
+        setTimeLeft(`${days}d : ${hours}h`);
+        setIsCritical(false);
+      } else {
+        setTimeLeft(
+          `${hours.toString().padStart(2, "0")}h : ${minutes
+            .toString()
+            .padStart(2, "0")}m : ${seconds.toString().padStart(2, "0")}s`
+        );
+        setIsCritical(true);
+      }
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [board.trashedAt]);
 
   return (
     <motion.div
@@ -73,6 +117,32 @@ const TrashBoardCard = ({ board, onActionComplete }) => {
           transition={{ repeat: Infinity, duration: 3 }}
           className="absolute inset-0 rounded-3xl border border-emerald-400/30 pointer-events-none"
         />
+
+        {/* 🕒 Stylish Countdown Badge */}
+        {timeLeft && (
+          <motion.div
+            animate={
+              isCritical
+                ? { opacity: [1, 0.8, 1], scale: [1, 1.05, 1] }
+                : { opacity: 1, scale: 1 }
+            }
+            transition={
+              isCritical
+                ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 0.3 }
+            }
+            className="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold text-white 
+                       border border-white/20 shadow-md backdrop-blur-sm 
+                       bg-gradient-to-r from-red-700 via-orange-600 to-yellow-500
+                       shadow-[0_0_12px_rgba(255,80,50,0.5)]
+                       flex items-center gap-1"
+          >
+            <span className="text-yellow-200/90">⚠</span>
+            <span className="drop-shadow-[0_0_3px_rgba(0,0,0,0.8)]">
+              Deleting in {timeLeft}
+            </span>
+          </motion.div>
+        )}
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between h-full">
