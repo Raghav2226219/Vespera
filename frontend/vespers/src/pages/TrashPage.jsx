@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import api from "../api/axios";
 import TrashBoardCard from "../components/TrashBoardCard";
 import TrashHeader from "../components/TrashHeader";
+import Toast from "../components/Toast"; // ✅ Added import
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -17,6 +18,16 @@ const TrashPage = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ✅ Toast state (moved here)
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
+  };
 
   // ✅ Fetch trashed boards once
   useEffect(() => {
@@ -80,19 +91,18 @@ const TrashPage = () => {
   // ✅ Instantly remove a card after delete/restore
   const handleActionComplete = (boardId) => {
     setBoards((prev) =>
-      prev.filter(
-        (b) => b._id !== boardId && b.id !== boardId // 👈 fixed comparison for both cases
-      )
+      prev.filter((b) => b._id !== boardId && b.id !== boardId)
     );
     setFilteredBoards((prev) =>
-      prev.filter(
-        (b) => b._id !== boardId && b.id !== boardId // 👈 fixed comparison for both cases
-      )
+      prev.filter((b) => b._id !== boardId && b.id !== boardId)
     );
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8 overflow-y-auto">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8 overflow-y-visible">
+      {/* ✅ Global Toast */}
+      <Toast show={showToast} message={toastMessage} />
+
       <motion.div
         initial="hidden"
         animate="visible"
@@ -127,6 +137,7 @@ const TrashPage = () => {
                 key={b._id || b.id}
                 board={b}
                 onActionComplete={handleActionComplete}
+                showToastMessage={showToastMessage} // ✅ passed down
               />
             ))}
           </div>
