@@ -214,3 +214,6 @@ POST   /invite/cancel             → Cancel an invite (owner/admin only)
 
 # ------------------ AUDITS ----------------------
 GET    /:boardId/audits           → View board action logs (archive, delete, restore, etc.)
+
+
+npx prisma migrate reset

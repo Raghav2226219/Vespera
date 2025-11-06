@@ -276,7 +276,7 @@ const validateInvite = async (req, res) => {
       boardTitle: invite.board.title,
       email: invite.email,
       role: invite.role,
-      expiresAt: invite.existingAt,
+      expiresAt: invite.expiresAt,
       cancelled: invite.cancelled,
     });
   } catch (err) {
