@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import api from "../api/axios";
 import ArchiveBoardCard from "../components/ArchiveBoardCard";
 import ArchiveHeader from "../components/ArchiveHeader";
+import Toast from "../components/Toast"; // ✅ added
 
-const gridVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.2 },
-  },
+const containerVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
 const ArchivePage = () => {
@@ -19,6 +17,16 @@ const ArchivePage = () => {
   const [sortOption, setSortOption] = useState("default");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ✅ Toast state (global)
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
+  };
 
   // ✅ Fetch archived boards
   useEffect(() => {
@@ -90,54 +98,50 @@ const ArchivePage = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8 overflow-y-auto">
-      {/* ✅ Header */}
-      <ArchiveHeader
-        title="Archived Boards"
-        subtitle="View and manage your archived boards"
-        sortOption={sortOption}
-        setSortOption={setSortOption}
-        search={search}
-        setSearch={setSearch}
-      />
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8 overflow-y-visible">
+      {/* ✅ Global Toast */}
+      <Toast show={showToast} message={toastMessage} />
 
-      {/* ✅ Cards Section (matching BoardPage column layout) */}
-      {loading ? (
-        <div className="text-center py-24 text-emerald-200/80 text-lg">
-          Loading archived boards…
-        </div>
-      ) : error ? (
-        <div className="text-center py-8 text-rose-300 bg-rose-900/20 rounded-lg max-w-md mx-auto">
-          {error}
-        </div>
-      ) : filteredBoards.length === 0 ? (
-        <div className="text-center text-emerald-200/70 mt-16 text-lg">
-          No archived boards found.
-        </div>
-      ) : (
-        <motion.div
-          layout
-          variants={gridVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-wrap md:flex-nowrap justify-start gap-6 md:gap-8 pl-6 md:pl-12 lg:pl-24 pr-4 md:pr-6 pb-8"
-        >
-          <AnimatePresence>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="max-w-7xl mx-auto relative"
+      >
+        <ArchiveHeader
+          title="Archived Boards"
+          subtitle="View and manage your archived boards"
+          sortOption={sortOption}
+          setSortOption={setSortOption}
+          search={search}
+          setSearch={setSearch}
+        />
+
+        {loading ? (
+          <div className="text-center py-24 text-emerald-200/80 text-lg">
+            Loading archived boards…
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-rose-300 bg-rose-900/20 rounded-lg max-w-md mx-auto">
+            {error}
+          </div>
+        ) : filteredBoards.length === 0 ? (
+          <div className="text-center text-emerald-200/70 mt-16 text-lg">
+            No archived boards found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 justify-items-center">
             {filteredBoards.map((b) => (
-              <motion.div
+              <ArchiveBoardCard
                 key={b._id || b.id}
-                layout
-                className="flex-shrink-0 w-[290px] sm:w-[320px] md:w-[360px] lg:w-[400px]"
-              >
-                <ArchiveBoardCard
-                  board={b}
-                  onActionComplete={handleActionComplete}
-                />
-              </motion.div>
+                board={b}
+                onActionComplete={handleActionComplete}
+                showToastMessage={showToastMessage} // ✅ pass down
+              />
             ))}
-          </AnimatePresence>
-        </motion.div>
-      )}
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 };
