@@ -18,6 +18,7 @@ import BoardDetails from "./pages/BoardDetails";
 import InviteMembers from "./pages/InviteMembers";
 import ArchivePage from "./pages/ArchivePage";
 import InviteAuditsAllPage from "./pages/InviteAuditsAllPage";
+import AcceptInvitePage from "./pages/AcceptInvitePage";
 
 function App() {
   return (
@@ -64,6 +65,7 @@ const AnimatedRoutes = () => {
           <Route path="/invite" element={<InviteMembers />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/invite-audits" element={<InviteAuditsAllPage />} />
+          <Route path="/accept-invite" element={<AcceptInvitePage />} />
         </Routes>
       )}
     </>

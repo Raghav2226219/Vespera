@@ -22,7 +22,7 @@ const InviteForm = ({ onSuccess }) => {
     }
 
     try {
-      const res = await api.post(`/invites/${boardId}`, { email, role });
+      const res = await api.post(`/invites/${boardId}`, { email, role }, { withCredentials: true });
       setMessage({ type: "success", text: res.data.message });
       setEmail("");
       setRole("Viewer");
