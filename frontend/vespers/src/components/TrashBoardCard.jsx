@@ -132,7 +132,7 @@ const TrashBoardCard = ({ board, onActionComplete }) => {
                 : { duration: 0.3 }
             }
             className="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold text-white 
-                       border border-white/20 shadow-md backdrop-blur-sm 
+                       border border-white/20 backdrop-blur-sm 
                        bg-gradient-to-r from-red-700 via-orange-600 to-yellow-500
                        shadow-[0_0_12px_rgba(255,80,50,0.5)]
                        flex items-center gap-1"
