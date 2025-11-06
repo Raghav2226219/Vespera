@@ -1,25 +1,25 @@
+// src/components/BoardCard.jsx
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { MoreVertical } from "lucide-react";
 import api from "../api/axios";
+import Toast from "./Toast"; // ✅ Global toast portal component
 
 // ✅ Dropdown rendered via portal
 const DropdownPortal = ({ rect, children }) => {
   if (!rect) return null;
-
   const style = {
     position: "absolute",
     top: rect.bottom + window.scrollY + 8,
     left: rect.right + window.scrollX - 160,
     zIndex: 9999,
   };
-
   return createPortal(<div style={style}>{children}</div>, document.body);
 };
 
-// ✅ Glassmorphic Animated Edit Modal
-const EditModal = ({ board, onClose, onUpdate }) => {
+// ✅ Glassmorphic Edit Modal (unchanged design)
+const EditModal = ({ board, onClose, onUpdate, showToast }) => {
   const [title, setTitle] = useState(board.title);
   const [description, setDescription] = useState(board.description || "");
   const [loading, setLoading] = useState(false);
@@ -32,9 +32,10 @@ const EditModal = ({ board, onClose, onUpdate }) => {
       const res = await api.put(`/board/${board.id}`, { title, description });
       onUpdate(res.data);
       onClose();
+      showToast("Board updated successfully!");
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Error updating board");
+      showToast("Failed to update board");
     } finally {
       setLoading(false);
     }
@@ -68,7 +69,6 @@ const EditModal = ({ board, onClose, onUpdate }) => {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
-
             <textarea
               placeholder="Description (optional)"
               value={description}
@@ -101,34 +101,38 @@ const EditModal = ({ board, onClose, onUpdate }) => {
   );
 };
 
-const BoardCard = ({ board, onOpen, onTrashed  }) => {
+const BoardCard = ({ board, onOpen, onTrashed }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [btnRect, setBtnRect] = useState(null);
   const menuButtonRef = useRef(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [boardData, setBoardData] = useState(board);
 
-  // ✅ Close dropdown when clicking outside
+  // ✅ Toast state (now global & independent)
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
+  };
+
+  // ✅ Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        menuButtonRef.current &&
-        !menuButtonRef.current.contains(e.target)
-      ) {
+      if (menuButtonRef.current && !menuButtonRef.current.contains(e.target)) {
         setMenuOpen(false);
       }
     };
-
     const handleScrollOrResize = () => {
       if (menuButtonRef.current) {
         setBtnRect(menuButtonRef.current.getBoundingClientRect());
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScrollOrResize, true);
     window.addEventListener("resize", handleScrollOrResize);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScrollOrResize, true);
@@ -143,7 +147,7 @@ const BoardCard = ({ board, onOpen, onTrashed  }) => {
     setMenuOpen((prev) => !prev);
   };
 
-  // ✅ Handle archive & trash API calls
+  // ✅ Handle edit, archive, trash
   const handleMenuAction = async (action) => {
     setMenuOpen(false);
 
@@ -158,21 +162,23 @@ const BoardCard = ({ board, onOpen, onTrashed  }) => {
     };
 
     try {
-      const res = await api.patch(endpointMap[action]);
-      alert(
-        `${action === "archive" ? "Archived" : "Moved to trash"} successfully`
-      );
+      // show toast first so it’s visible even if card unmounts
+      if (action === "archive") showToastMessage("Board archived successfully!");
+      if (action === "trash") showToastMessage("Board moved to trash!");
 
-      // ✅ Remove this board from UI immediately
+      await api.patch(endpointMap[action]);
       if (onTrashed) onTrashed(board.id);
     } catch (err) {
       console.error(`Error performing ${action}:`, err);
-      alert(err.response?.data?.message || `Failed to ${action} board`);
+      showToastMessage(`Failed to ${action} board`);
     }
   };
 
   return (
     <>
+      {/* ✅ Toast rendered globally (won’t hide behind header) */}
+      <Toast show={showToast} message={toastMessage} />
+
       <motion.div
         onClick={() => onOpen(boardData)}
         initial={{ rotateX: 0, rotateY: 0, scale: 1 }}
@@ -196,7 +202,7 @@ const BoardCard = ({ board, onOpen, onTrashed  }) => {
           whileHover={{ opacity: 0.9, scale: 1.05 }}
         />
 
-        {/* Main Card */}
+        {/* Main Card (your exact design kept) */}
         <motion.div
           className="relative z-10 h-full w-full rounded-3xl p-6 flex flex-col justify-between overflow-hidden
                    border border-emerald-400/20 backdrop-blur-2xl
@@ -226,7 +232,6 @@ const BoardCard = ({ board, onOpen, onTrashed  }) => {
           />
 
           <div className="relative z-10 flex flex-col justify-between h-full">
-            {/* Top Section: Title + Menu */}
             <div className="flex justify-between items-start">
               <motion.h3
                 className="text-2xl font-extrabold tracking-wide text-transparent bg-clip-text
@@ -270,11 +275,11 @@ const BoardCard = ({ board, onOpen, onTrashed  }) => {
         {/* Bottom Glow */}
         <motion.div
           className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-44 h-8 bg-emerald-400/20 blur-3xl rounded-full"
-          whileHover={{ opacity: 1, scale: 1.2, blur: "40px" }}
+          whileHover={{ opacity: 1, scale: 1.2, blur: '40px' }}
           transition={{ duration: 0.6 }}
         />
 
-        {/* ✅ Dropdown */}
+        {/* Dropdown Menu */}
         <AnimatePresence>
           {menuOpen && (
             <DropdownPortal rect={btnRect}>
@@ -318,13 +323,14 @@ const BoardCard = ({ board, onOpen, onTrashed  }) => {
         </AnimatePresence>
       </motion.div>
 
-      {/* ✅ Glassmorphic Edit Modal */}
+      {/* Edit Modal */}
       <AnimatePresence>
         {editModalOpen && (
           <EditModal
             board={boardData}
             onClose={() => setEditModalOpen(false)}
             onUpdate={(updated) => setBoardData(updated)}
+            showToast={showToastMessage}
           />
         )}
       </AnimatePresence>
