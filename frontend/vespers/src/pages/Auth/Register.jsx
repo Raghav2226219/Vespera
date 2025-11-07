@@ -1,27 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import api from "../../api/axios";
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.8, ease: "easeInOut" },
-  },
-};
-
-const floatAnim = {
-  animate: { y: [0, -10, 0], rotate: [0, 1, -1, 0] },
-  transition: {
-    duration: 10,
-    repeat: Infinity,
-    repeatType: "mirror",
-    ease: "easeInOut",
-  },
-};
+import VesperaHologram from "../../components/VesperaHologram";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -34,238 +16,240 @@ const Register = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  try {
-    // 1️⃣ Register user
-    await api.post("/user/register", form);
+    try {
+      await api.post("/user/register", form);
 
-    // 2️⃣ Auto login after successful registration
-    const { data } = await api.post("/user/login", {
-      email: form.email,
-      password: form.password,
-    });
+      const { data } = await api.post("/user/login", {
+        email: form.email,
+        password: form.password,
+      });
 
-    // 3️⃣ Store tokens and user info in localStorage
-    localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("refreshToken", data.refreshToken);
-    localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-    // 4️⃣ Redirect to Dashboard
-    navigate("/dashboard");
-  } catch (err) {
-    setError(err?.response?.data?.message || "Registration failed");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 overflow-hidden">
-      {/* Floating background lights */}
+    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white overflow-hidden">
+      {/* Ambient Orbs */}
       <motion.div
         animate={{ x: [0, 25, -25, 0], y: [0, -25, 25, 0] }}
-        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -left-20 -top-16 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl"
+        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-0 top-0 w-[20rem] h-[20rem] rounded-full bg-emerald-500/15 blur-3xl"
       />
       <motion.div
         animate={{ x: [0, -25, 25, 0], y: [0, 25, -25, 0] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -right-24 bottom-10 w-96 h-96 rounded-full bg-cyan-400/10 blur-3xl"
+        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-0 bottom-0 w-[24rem] h-[24rem] rounded-full bg-yellow-400/10 blur-3xl"
       />
+      <div className="absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:22px_22px] opacity-20 pointer-events-none" />
 
-      {/* Glass card */}
+      {/* Floating Light Particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(32)].map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute block h-[3px] w-[3px] rounded-full bg-lime-300/90"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              filter: "drop-shadow(0 0 10px rgba(190,255,150,0.9))",
+            }}
+            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.4, 0.8] }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Central Section */}
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="relative z-10 w-full max-w-6xl mx-4 md:mx-8 rounded-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="relative z-10 w-[90%] max-w-2xl flex flex-col items-center text-center space-y-6 overflow-hidden"
       >
-        <div className="flex flex-col md:flex-row bg-[rgba(255,255,255,0.05)] backdrop-blur-xl border border-white/10">
-          {/* Left Form */}
-          <div className="w-full md:w-1/2 p-6 md:p-8 lg:p-10 flex flex-col justify-center">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-300 flex items-center justify-center border border-white/10">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-white/90"
-                >
-                  <path
-                    d="M4 7h16M4 12h16M4 17h16"
-                    stroke="rgba(255,255,255,0.9)"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <span className="text-sm text-white/70 font-medium">Vespera</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl font-playfair text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-amber-200 to-white font-extrabold tracking-tight">
-              Create Your Account
-            </h1>
-
-            <p className="mt-2 text-sm text-emerald-200/70">
-              Join the Vespera workspace and start your journey today.
-            </p>
-
-            <form onSubmit={handleSubmit} className="mt-5 space-y-3">
-              {error && (
-                <div className="text-sm text-rose-200 bg-rose-700/30 px-3 py-2 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              {/* Two-column layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="text-xs text-white/60">Name</span>
-                  <input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                    placeholder="John Doe"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-xs text-white/60">Email</span>
-                  <input
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                    placeholder="you@company.com"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-xs text-white/60">Phone Number</span>
-                  <input
-                    name="phonenumber"
-                    type="tel"
-                    value={form.phonenumber}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                    placeholder="+91 9876543210"
-                  />
-                </label>
-
-                {/* Role dropdown — matched styling */}
-                <label className="block">
-                  <span className="text-xs text-white/60">Role</span>
-                  <div className="relative mt-1">
-                    <select
-                      id="role"
-                      name="role"
-                      value={form.role}
-                      onChange={handleChange}
-                      required
-                      className="w-full appearance-none px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 hover:bg-white/10 transition-all duration-300"
-                    >
-                      <option value="" className="text-black">Select a role</option>
-                      <option value="Owner" className="text-black">
-                        Owner
-                      </option>
-                      <option value="Editor" className="text-black">
-                        Editor
-                      </option>
-                      <option value="Viewer" className="text-black">
-                        Viewer
-                      </option>
-                    </select>
-
-                    {/* Custom dropdown arrow */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="rgba(255,255,255,0.6)"
-                      className="w-4 h-4 absolute right-3 top-3 pointer-events-none"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 9l6 6 6-6"
-                      />
-                    </svg>
-                  </div>
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="text-xs text-white/60">Password</span>
-                <input
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                  placeholder="••••••••"
-                />
-              </label>
-
-              <motion.button
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-2 rounded-xl text-gray-900 font-semibold bg-[linear-gradient(120deg,#34d399,#06b6d4,#34d399)] bg-[length:200%_100%] animate-shimmer shadow-lg"
-              >
-                {loading ? "Creating Account..." : "Sign Up"}
-              </motion.button>
-            </form>
-
-            <p className="mt-4 text-sm text-white/60">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="text-emerald-300 font-semibold hover:underline"
-              >
-                Sign In
-              </Link>
-            </p>
-          </div>
-
-          {/* Right Illustration */}
-          <div className="hidden md:flex w-1/2 items-center justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent)]">
-            <motion.div
-              className="w-72 h-72 rounded-2xl flex items-center justify-center border border-white/10 bg-gradient-to-br from-emerald-500/10 to-cyan-400/10 shadow-lg"
-              animate={floatAnim.animate}
-              transition={floatAnim.transition}
-            >
-              <motion.img
-                src="https://cdn-icons-png.flaticon.com/512/747/747376.png"
-                alt="Register Illustration"
-                className="w-36 h-36 object-contain drop-shadow-[0_10px_40px_rgba(6,95,70,0.18)]"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </motion.div>
-          </div>
+        <div className="w-36 mb-3">
+          <VesperaHologram />
         </div>
+
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(190,255,150,0.4)]"
+        >
+          Create Your Vespera Account
+        </motion.h1>
+
+        {/* Scanning Line */}
+        <motion.div
+          className="w-[65%] h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent rounded-full overflow-hidden"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <motion.div
+            className="h-full w-[18%] bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
+            animate={{ x: ["-10%", "100%"] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.div>
+
+        {/* Form */}
+        <motion.form
+          onSubmit={handleSubmit}
+          className="relative mt-4 bg-[rgba(10,26,22,0.55)] border border-lime-400/25 backdrop-blur-2xl rounded-3xl shadow-[0_0_40px_rgba(190,255,150,0.2)] px-8 py-7 w-full text-left space-y-5"
+          whileHover={{
+            boxShadow:
+              "0 0 50px rgba(255,255,150,0.15), inset 0 0 10px rgba(190,255,150,0.2)",
+          }}
+        >
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-rose-200 bg-rose-700/30 px-3 py-2 rounded-lg text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+
+          {/* Inputs Row 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-xs text-white/60">Full Name</span>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                placeholder="John Doe"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-xs text-white/60">Email</span>
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                placeholder="you@vespera.com"
+              />
+            </label>
+          </div>
+
+          {/* Inputs Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-xs text-white/60">Phone Number</span>
+              <input
+                name="phonenumber"
+                type="tel"
+                value={form.phonenumber}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                placeholder="+91 9876543210"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-xs text-white/60">Role</span>
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+              >
+                <option value="" className="text-black">
+                  Select role
+                </option>
+                <option value="Owner" className="text-black">
+                  Owner
+                </option>
+                <option value="Editor" className="text-black">
+                  Editor
+                </option>
+                <option value="Viewer" className="text-black">
+                  Viewer
+                </option>
+              </select>
+            </label>
+          </div>
+
+          {/* Password */}
+          <label className="block">
+            <span className="text-xs text-white/60">Password</span>
+            <div className="relative mt-1">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-2 text-lime-200/70 hover:text-yellow-100 transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </label>
+
+          {/* Submit */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            disabled={loading}
+            className="w-full mt-4 py-3 rounded-xl text-gray-900 font-semibold 
+                       bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 
+                       hover:shadow-[0_0_35px_rgba(190,255,150,0.4)]
+                       transition-all duration-300"
+            type="submit"
+          >
+            {loading ? "Creating Account..." : "Create Account"}
+          </motion.button>
+        </motion.form>
+
+        <p className="text-sm text-white/60">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-lime-300 font-semibold hover:underline"
+          >
+            Sign In
+          </Link>
+        </p>
       </motion.div>
     </div>
   );

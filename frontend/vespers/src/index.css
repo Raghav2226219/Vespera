@@ -66,3 +66,12 @@ input:-webkit-autofill:focus {
   color: #6ee7b7 !important;
   border-radius: 0.5rem !important;
 }
+
+/* Hide scrollbars globally but allow scrolling if needed */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

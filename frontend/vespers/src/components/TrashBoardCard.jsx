@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import api from "../api/axios";
 import { useState, useEffect } from "react";
-import ConfirmDeleteModal from "./ConfirmDeleteModal"; 
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
 const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
   const [restoringId, setRestoringId] = useState(null);
@@ -10,7 +10,7 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
   const [isCritical, setIsCritical] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // 🟢 Restore board
+  // Restore Board
   const handleRestore = async (id) => {
     setRestoringId(id);
     try {
@@ -25,7 +25,7 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
     }
   };
 
-  // 🔴 Permanently delete board (triggered after confirm)
+  // Delete Board
   const handlePermanentDelete = async (id) => {
     setDeletingId(id);
     try {
@@ -40,7 +40,7 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
     }
   };
 
-  // 🧮 Countdown logic (15 days from trashedAt)
+  // Countdown (15 days from trashedAt)
   useEffect(() => {
     if (!board.trashedAt) return;
     const trashedTime = new Date(board.trashedAt).getTime();
@@ -82,7 +82,6 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
 
   return (
     <>
-      {/* ✅ Confirm Modal */}
       <ConfirmDeleteModal
         show={showConfirm}
         onConfirm={() => {
@@ -92,7 +91,6 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
         onCancel={() => setShowConfirm(false)}
       />
 
-      {/* 🟩 Card */}
       <motion.div
         key={board._id || board.id}
         layout
@@ -100,38 +98,35 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.9 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        whileHover={{
-          rotateX: 4,
-          rotateY: -4,
-          y: -6,
-          scale: 1.03,
-        }}
+        whileHover={{ rotateX: 4, rotateY: -4, y: -6, scale: 1.03 }}
         style={{ perspective: 1000 }}
         className="relative group w-80 h-56 md:w-88 md:h-60 cursor-pointer select-none"
       >
-        {/* Ambient Glow */}
+        {/* 🌌 Ambient Dual Glow */}
         <motion.div
-          className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-emerald-400/20 via-cyan-400/10 to-transparent opacity-40 blur-md"
-          whileHover={{ opacity: 0.7, scale: 1.05 }}
+          className="absolute inset-0 rounded-3xl 
+                     bg-gradient-to-tr from-emerald-400/25 via-yellow-300/10 to-transparent 
+                     opacity-50 blur-lg"
+          whileHover={{ opacity: 0.8, scale: 1.05 }}
         />
 
-        {/* Main Card */}
+        {/* 💠 Main Card */}
         <motion.div
           className="relative z-10 h-full w-full rounded-3xl p-6 flex flex-col justify-between overflow-hidden
-                     border border-emerald-400/20 backdrop-blur-xl
-                     bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900
+                     border border-emerald-400/30 backdrop-blur-xl
+                     bg-gradient-to-br from-gray-950 via-[#032015] to-[#092e25]
                      shadow-[0_0_25px_rgba(0,0,0,0.6)]
-                     group-hover:shadow-[0_0_50px_rgba(16,185,129,0.5)]
+                     group-hover:shadow-[0_0_60px_rgba(255,255,120,0.25)]
                      transition-all duration-700 ease-out"
         >
-          {/* Border shimmer */}
+          {/* ⚡ Animated Gold Border Shimmer */}
           <motion.div
-            animate={{ opacity: [0.2, 0.6, 0.2] }}
-            transition={{ repeat: Infinity, duration: 3 }}
-            className="absolute inset-0 rounded-3xl border border-emerald-400/30 pointer-events-none"
+            animate={{ opacity: [0.25, 0.8, 0.25] }}
+            transition={{ repeat: Infinity, duration: 4 }}
+            className="absolute inset-0 rounded-3xl border border-yellow-400/40 pointer-events-none"
           />
 
-          {/* 🕒 Countdown Badge */}
+          {/* ⏳ Countdown Badge */}
           {timeLeft && (
             <motion.div
               animate={
@@ -144,26 +139,23 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
                   ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
                   : { duration: 0.3 }
               }
-              className="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold text-white 
-                         border border-white/20 backdrop-blur-sm 
-                         bg-gradient-to-r from-red-700 via-orange-600 to-yellow-500
-                         shadow-[0_0_12px_rgba(255,80,50,0.5)]
+              className="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-900 
+                         border border-yellow-200/30 backdrop-blur-sm 
+                         bg-gradient-to-r from-yellow-300 via-amber-300 to-lime-300
+                         shadow-[0_0_15px_rgba(255,255,120,0.45)]
                          flex items-center gap-1"
             >
-              <span className="text-yellow-200/90">⚠</span>
-              <span className="drop-shadow-[0_0_3px_rgba(0,0,0,0.8)]">
-                Deleting in {timeLeft}
-              </span>
+              ⚠ <span>Deleting in {timeLeft}</span>
             </motion.div>
           )}
 
-          {/* Content */}
+          {/* 🧠 Content */}
           <div className="relative z-10 flex flex-col justify-between h-full">
             <div>
               <motion.h3
                 className="text-2xl font-extrabold tracking-wide text-transparent bg-clip-text
-                           bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200
-                           drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]
+                           bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-200
+                           drop-shadow-[0_0_15px_rgba(255,255,120,0.35)]
                            transition-transform duration-500"
                 whileHover={{ scale: 1.06 }}
               >
@@ -175,22 +167,22 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
               </p>
             </div>
 
-            <div className="text-xs text-emerald-200/80 mt-4">
+            <div className="text-xs text-yellow-200/80 mt-4">
               🗑 Trashed on{" "}
-              <span className="text-emerald-300">
+              <span className="text-yellow-300">
                 {new Date(board.trashedAt).toLocaleDateString()}
               </span>
             </div>
           </div>
 
-          {/* Hover Overlay */}
+          {/* 🪩 Hover Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             whileHover={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
             className="absolute inset-0 z-20 flex items-center justify-center gap-5 bg-black/25 backdrop-blur-[1px] rounded-3xl"
           >
-            {/* Restore Button */}
+            {/* ♻ Restore Button */}
             <motion.button
               disabled={!!restoringId || !!deletingId}
               onClick={(e) => {
@@ -200,10 +192,10 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
               className={`px-5 py-2.5 rounded-xl font-semibold shadow-md
-                         bg-gradient-to-r from-emerald-700 to-cyan-700
-                         hover:from-emerald-600 hover:to-cyan-600
-                         text-white transition-all duration-300
-                         hover:shadow-[0_0_14px_rgba(16,185,129,0.4)]
+                         bg-gradient-to-r from-emerald-400 to-lime-300
+                         hover:from-emerald-300 hover:to-yellow-200
+                         text-gray-900 transition-all duration-300
+                         hover:shadow-[0_0_20px_rgba(255,255,120,0.4)]
                          ${
                            restoringId === (board._id || board.id)
                              ? "opacity-70 cursor-wait"
@@ -216,7 +208,7 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
                 : "Restore"}
             </motion.button>
 
-            {/* Delete Button */}
+            {/* 🗑 Delete Button */}
             <motion.button
               disabled={!!restoringId || !!deletingId}
               onClick={(e) => {
@@ -226,10 +218,10 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
               className={`px-5 py-2.5 rounded-xl font-semibold shadow-md
-                         bg-gradient-to-r from-red-700 to-yellow-600
-                         hover:from-red-600 hover:to-yellow-500
+                         bg-gradient-to-r from-red-700 via-amber-600 to-yellow-500
+                         hover:from-red-600 hover:to-yellow-400
                          text-white transition-all duration-300
-                         hover:shadow-[0_0_14px_rgba(255,120,60,0.4)]
+                         hover:shadow-[0_0_18px_rgba(255,190,60,0.5)]
                          ${
                            deletingId === (board._id || board.id)
                              ? "opacity-70 cursor-wait"
@@ -244,10 +236,12 @@ const TrashBoardCard = ({ board, onActionComplete, showToastMessage }) => {
           </motion.div>
         </motion.div>
 
-        {/* Bottom Glow */}
+        {/* 🌠 Bottom Glow */}
         <motion.div
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-44 h-8 bg-emerald-400/20 blur-3xl rounded-full"
-          whileHover={{ opacity: 1, scale: 1.2, blur: "40px" }}
+          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-44 h-8 
+                     bg-gradient-to-r from-yellow-400/30 via-lime-300/20 to-emerald-400/30 
+                     blur-3xl rounded-full"
+          whileHover={{ opacity: 1, scale: 1.25 }}
           transition={{ duration: 0.6 }}
         />
       </motion.div>

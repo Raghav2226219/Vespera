@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, LayoutDashboard } from "lucide-react"; // ✅ Added icon here
+import { Search, ChevronDown, LayoutDashboard } from "lucide-react";
 import api from "../api/axios";
 import BoardCard from "./BoardCard";
+import VesperaMiniHolo from "../components/VesperaMiniHolo"; // ✅ added holo
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -12,16 +13,8 @@ const containerVariants = {
 
 const dropdownVariants = {
   hidden: { opacity: 0, y: -8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.2, ease: "easeOut" },
-  },
-  exit: {
-    opacity: 0,
-    y: -8,
-    transition: { duration: 0.15, ease: "easeIn" },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.15, ease: "easeIn" } },
 };
 
 const BoardsAddSection = () => {
@@ -35,7 +28,6 @@ const BoardsAddSection = () => {
   const [error, setError] = useState("");
   const closeTimeoutRef = useRef(null);
 
-  // Fetch boards
   useEffect(() => {
     const fetchBoards = async () => {
       try {
@@ -53,7 +45,6 @@ const BoardsAddSection = () => {
     fetchBoards();
   }, []);
 
-  // Search + Sort filter
   useEffect(() => {
     const timer = setTimeout(() => {
       let filtered = [...boards];
@@ -100,19 +91,14 @@ const BoardsAddSection = () => {
     setDropdownOpen(false);
   };
 
-  const openBoard = (board) => {
-    navigate(`/board/${board.id}`);
-  };
+  const openBoard = (board) => navigate(`/board/${board.id}`);
 
-  // ✅ Remove board instantly when trashed
   const handleBoardTrashed = (boardId) => {
     setBoards((prev) => prev.filter((b) => b.id !== boardId));
     setFilteredBoards((prev) => prev.filter((b) => b.id !== boardId));
   };
 
-  const handleDashboard = () => {
-    navigate("/dashboard");
-  };
+  const handleDashboard = () => navigate("/dashboard");
 
   return (
     <motion.div
@@ -121,33 +107,51 @@ const BoardsAddSection = () => {
       variants={containerVariants}
       className="max-w-7xl mx-auto relative"
     >
-      {/* Header */}
+      {/* 🌌 Header Section with Holo */}
       <header
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 
-                   backdrop-blur-lg bg-white/5 px-6 py-4 rounded-2xl border border-white/10 
-                   shadow-xl relative z-[50]"
+                   backdrop-blur-lg bg-gradient-to-br from-gray-950/80 via-emerald-950/60 to-emerald-900/50 
+                   px-6 py-5 rounded-2xl border border-lime-400/20 
+                   shadow-[0_0_25px_rgba(255,255,150,0.12)] relative z-[50]"
       >
-        <div>
-          <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-cyan-300 to-white">
-            Your Boards
-          </h1>
-          <p className="text-emerald-200/80 mt-1 text-sm">
-            Manage and explore your boards in 3D space
-          </p>
+        {/* Left Section — Holo + Text */}
+        <div className="flex items-center gap-4">
+          <div className="scale-90 sm:scale-100">
+            <VesperaMiniHolo size={48} />
+          </div>
+          <div>
+            <h1 className="text-4xl font-extrabold bg-clip-text text-transparent 
+                           bg-gradient-to-r from-lime-300 via-yellow-300 to-white 
+                           drop-shadow-[0_0_18px_rgba(255,255,150,0.25)]">
+              Your Boards
+            </h1>
+            <p className="text-lime-200/80 mt-1 text-sm">
+              Manage and explore your boards in 3D space
+            </p>
+            <motion.div
+              className="mt-2 w-32 h-[2px] rounded-full bg-gradient-to-r 
+                         from-transparent via-yellow-300/70 to-transparent"
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
         </div>
 
+        {/* Controls */}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-stretch sm:items-center">
-          {/* ✅ Dashboard Button before Sort */}
-          <button
+          {/* Dashboard Button */}
+          <motion.button
             onClick={handleDashboard}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium shadow-md 
-            bg-gradient-to-r from-gray-800 to-emerald-700
-            hover:from-gray-700 hover:to-emerald-600 
-            text-emerald-200 transition-all duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium 
+                       bg-gradient-to-r from-emerald-700 via-lime-500/80 to-yellow-400/70
+                       text-gray-900 shadow-[0_0_20px_rgba(190,255,150,0.3)]
+                       hover:shadow-[0_0_30px_rgba(255,255,150,0.45)] transition-all duration-300"
           >
             <LayoutDashboard className="w-5 h-5" />
             Dashboard
-          </button>
+          </motion.button>
 
           {/* Sort Dropdown */}
           <div
@@ -168,9 +172,9 @@ const BoardsAddSection = () => {
             <button
               onClick={() => setDropdownOpen((p) => !p)}
               className="flex items-center justify-between w-44 px-4 py-2.5 rounded-xl 
-                         bg-gradient-to-r from-emerald-900/60 to-cyan-900/40 border border-emerald-400/20
-                         text-emerald-100 font-medium backdrop-blur-md shadow-inner shadow-emerald-900/30
-                         hover:shadow-[0_0_12px_rgba(16,185,129,0.4)] hover:from-emerald-800/70 hover:to-cyan-800/50
+                         bg-gradient-to-r from-lime-900/60 to-yellow-900/30 border border-lime-400/20
+                         text-lime-100 font-medium backdrop-blur-md shadow-inner shadow-lime-900/30
+                         hover:shadow-[0_0_12px_rgba(255,255,150,0.3)] hover:from-lime-800/70 hover:to-yellow-800/50
                          transition-all duration-300"
             >
               {sortOption === "default"
@@ -196,9 +200,9 @@ const BoardsAddSection = () => {
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  className="absolute mt-2 w-44 bg-gradient-to-b from-emerald-950/95 via-emerald-900/90 to-cyan-950/90 
-                             border border-emerald-400/30 rounded-xl backdrop-blur-2xl shadow-xl 
-                             shadow-emerald-900/40 overflow-hidden z-[9999]"
+                  className="absolute mt-2 w-44 bg-gradient-to-b from-lime-950/95 via-lime-900/90 to-yellow-950/90 
+                             border border-lime-400/30 rounded-xl backdrop-blur-2xl shadow-xl 
+                             shadow-yellow-900/40 overflow-hidden z-[9999]"
                 >
                   {[
                     { label: "Default", value: "default" },
@@ -213,8 +217,8 @@ const BoardsAddSection = () => {
                       className={`px-4 py-2.5 text-sm cursor-pointer transition 
                                  ${
                                    sortOption === opt.value
-                                     ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-emerald-300"
-                                     : "text-emerald-100 hover:bg-white/10 hover:text-emerald-200"
+                                     ? "bg-gradient-to-r from-lime-500/20 to-yellow-500/20 text-lime-300"
+                                     : "text-lime-100 hover:bg-white/10 hover:text-yellow-200"
                                  }`}
                     >
                       {opt.label}
@@ -227,30 +231,33 @@ const BoardsAddSection = () => {
 
           {/* Search Bar */}
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/60 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-lime-300/70 w-5 h-5" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search boards..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/10 border border-emerald-400/20
-                         text-emerald-100 placeholder-emerald-300/40
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/10 border border-lime-400/20
+                         text-lime-100 placeholder-lime-200/40
                          backdrop-blur-md shadow-inner
-                         focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400/50
+                         focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:border-lime-400/50
                          transition duration-300"
             />
           </div>
 
           {/* Create New Board */}
-          <button
+          <motion.button
             onClick={() => navigate("/newboard")}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-teal-400 
-                       text-gray-900 font-semibold shadow-[0_0_25px_rgba(16,185,129,0.3)] 
-                       hover:from-emerald-300 hover:to-cyan-300 hover:scale-[1.05] 
-                       transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="px-5 py-2.5 rounded-xl font-semibold 
+                       bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 
+                       text-gray-900 shadow-[0_0_25px_rgba(255,255,150,0.3)] 
+                       hover:shadow-[0_0_35px_rgba(255,255,150,0.5)] 
+                       hover:from-yellow-200 hover:to-lime-200 transition-all duration-300"
           >
             + New Board
-          </button>
+          </motion.button>
         </div>
       </header>
 
@@ -274,7 +281,7 @@ const BoardsAddSection = () => {
               key={b.id}
               board={b}
               onOpen={openBoard}
-              onTrashed={() => handleBoardTrashed(b.id)} // ✅ Auto remove when trashed
+              onTrashed={() => handleBoardTrashed(b.id)}
             />
           ))}
         </div>

@@ -7,11 +7,11 @@ const jwt = require("jsonwebtoken");
 const issueTokenAndSetCookie = (res, userId) => {
   const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
   res.cookie("token", token, {
-    httpOnly: true,
-    sameSite: "lax", // important for localhost
-    secure: false,   // true only when using https
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  httpOnly: true,
+  sameSite: "none",   // allow cross-origin cookie
+  secure: true,       // required for sameSite: 'none' (even on localhost via HTTPS)
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
   return token;
 };
 

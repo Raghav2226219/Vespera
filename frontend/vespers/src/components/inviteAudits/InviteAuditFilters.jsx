@@ -1,4 +1,3 @@
-// src/components/inviteAudits/InviteAuditFilters.jsx
 import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ArrowLeft } from "lucide-react";
@@ -49,33 +48,53 @@ const InviteAuditFilters = ({
   }, []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-6 gap-5 mb-5 bg-[#0b1915] border border-white/10 rounded-2xl p-5 items-end">
-      {/* Back Button */}
-      <div className="flex items-end">
+    <div
+      className="relative z-10 grid grid-cols-1 md:grid-cols-6 gap-5 mb-5 
+                 px-5 py-6 rounded-2xl border border-yellow-300/15 
+                 bg-gradient-to-br from-[#0b1914]/90 via-[#143121]/85 to-[#1a3e28]/85
+                 backdrop-blur-2xl shadow-[0_0_35px_rgba(255,255,150,0.12)] 
+                 transition-all duration-300"
+    >
+      {/* 🌈 Background glow beam */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-tr from-yellow-300/10 via-lime-400/15 to-transparent blur-2xl"
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* 🔙 Back Button */}
+      <div className="flex items-end relative z-10">
         <button
           onClick={() => navigate("/dashboard")}
           className="flex items-center justify-center gap-2 px-5 py-[10px] rounded-xl
-                     bg-[#11221c] border border-emerald-400/20 
-                     text-emerald-100 font-medium hover:bg-[#153029]
-                     hover:text-emerald-300 transition-all duration-200 w-full"
+                     bg-gradient-to-r from-lime-700/40 via-yellow-600/40 to-emerald-700/40
+                     border border-yellow-400/20
+                     text-yellow-100 font-medium 
+                     hover:from-lime-600/50 hover:to-yellow-500/50 
+                     hover:text-yellow-200 
+                     shadow-[0_0_15px_rgba(255,255,150,0.15)]
+                     transition-all duration-300 w-full"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-yellow-300" />
           <span className="hidden md:inline">Back</span>
         </button>
       </div>
 
-      {/* Board Dropdown */}
-      <div className="relative" ref={boardRef}>
-        <label className="text-xs text-emerald-200/70 mb-1 block">Board</label>
+      {/* 🧭 Board Dropdown */}
+      <div className="relative z-10" ref={boardRef}>
+        <label className="text-xs text-yellow-100/80 mb-1 block">Board</label>
         <button
           onClick={() => {
             setOpenBoardDropdown(!openBoardDropdown);
             setOpenActionDropdown(false);
           }}
           className="w-full flex items-center justify-between px-4 py-[10px] rounded-xl
-                     bg-[#11221c] border border-emerald-400/20
-                     text-emerald-100 font-medium hover:bg-[#153029]
-                     transition-all duration-200 h-[42px]"
+                     bg-gradient-to-r from-lime-900/50 to-yellow-900/30 
+                     border border-yellow-400/20 text-yellow-100 font-medium
+                     backdrop-blur-md shadow-inner shadow-yellow-900/30
+                     hover:shadow-[0_0_12px_rgba(255,255,150,0.3)] 
+                     hover:from-lime-800/60 hover:to-yellow-800/40
+                     transition-all duration-300 h-[42px]"
         >
           {boardId
             ? boards.find((b) => String(b.id) === String(boardId))?.title || "Select Board"
@@ -95,8 +114,9 @@ const InviteAuditFilters = ({
               animate="visible"
               exit="exit"
               className="absolute z-50 mt-2 w-full py-2 rounded-xl
-                         bg-[#0D1B17] border border-[#1E3A34]
-                         shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-sm"
+                         bg-gradient-to-b from-lime-950/95 via-lime-900/90 to-yellow-950/90 
+                         border border-lime-400/30 backdrop-blur-2xl shadow-xl 
+                         shadow-yellow-900/40 overflow-hidden text-sm"
             >
               <li
                 onClick={() => {
@@ -104,7 +124,7 @@ const InviteAuditFilters = ({
                   setOpenBoardDropdown(false);
                   resetAndRefetch();
                 }}
-                className="px-4 py-2 text-[#A7F3D0] cursor-pointer hover:bg-[#122720] hover:text-emerald-300 transition"
+                className="px-4 py-2 text-yellow-200 cursor-pointer hover:bg-white/10 hover:text-yellow-300 transition"
               >
                 All Boards
               </li>
@@ -118,8 +138,8 @@ const InviteAuditFilters = ({
                   }}
                   className={`px-4 py-2 cursor-pointer transition ${
                     boardId === String(b.id || b._id)
-                      ? "bg-[#153029] text-emerald-300"
-                      : "text-emerald-100 hover:bg-[#122720] hover:text-emerald-200"
+                      ? "bg-gradient-to-r from-lime-500/20 to-yellow-500/20 text-yellow-300"
+                      : "text-lime-100 hover:bg-white/10 hover:text-yellow-200"
                   }`}
                 >
                   {b.title}
@@ -130,18 +150,21 @@ const InviteAuditFilters = ({
         </AnimatePresence>
       </div>
 
-      {/* Action Dropdown */}
-      <div className="relative" ref={actionRef}>
-        <label className="text-xs text-emerald-200/70 mb-1 block">Action</label>
+      {/* ⚙️ Action Dropdown */}
+      <div className="relative z-10" ref={actionRef}>
+        <label className="text-xs text-yellow-100/80 mb-1 block">Action</label>
         <button
           onClick={() => {
             setOpenActionDropdown(!openActionDropdown);
             setOpenBoardDropdown(false);
           }}
           className="w-full flex items-center justify-between px-4 py-[10px] rounded-xl
-                     bg-[#11221c] border border-emerald-400/20
-                     text-emerald-100 font-medium hover:bg-[#153029]
-                     transition-all duration-200 h-[42px]"
+                     bg-gradient-to-r from-lime-900/50 to-yellow-900/30 
+                     border border-yellow-400/20 text-yellow-100 font-medium
+                     backdrop-blur-md shadow-inner shadow-yellow-900/30
+                     hover:shadow-[0_0_12px_rgba(255,255,150,0.3)] 
+                     hover:from-lime-800/60 hover:to-yellow-800/40
+                     transition-all duration-300 h-[42px]"
         >
           {action || "All"}
           <ChevronDown
@@ -159,8 +182,9 @@ const InviteAuditFilters = ({
               animate="visible"
               exit="exit"
               className="absolute z-50 mt-2 w-full py-2 rounded-xl
-                         bg-[#0D1B17] border border-[#1E3A34]
-                         shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-sm"
+                         bg-gradient-to-b from-lime-950/95 via-lime-900/90 to-yellow-950/90 
+                         border border-lime-400/30 backdrop-blur-2xl shadow-xl 
+                         shadow-yellow-900/40 overflow-hidden text-sm"
             >
               <li
                 onClick={() => {
@@ -168,7 +192,7 @@ const InviteAuditFilters = ({
                   setOpenActionDropdown(false);
                   resetAndRefetch();
                 }}
-                className="px-4 py-2 text-[#A7F3D0] cursor-pointer hover:bg-[#122720] hover:text-emerald-300 transition"
+                className="px-4 py-2 text-yellow-200 cursor-pointer hover:bg-white/10 hover:text-yellow-300 transition"
               >
                 All
               </li>
@@ -182,8 +206,8 @@ const InviteAuditFilters = ({
                   }}
                   className={`px-4 py-2 cursor-pointer transition ${
                     action === a
-                      ? "bg-[#153029] text-emerald-300"
-                      : "text-emerald-100 hover:bg-[#122720] hover:text-emerald-200"
+                      ? "bg-gradient-to-r from-lime-500/20 to-yellow-500/20 text-yellow-300"
+                      : "text-lime-100 hover:bg-white/10 hover:text-yellow-200"
                   }`}
                 >
                   {a}
@@ -194,9 +218,9 @@ const InviteAuditFilters = ({
         </AnimatePresence>
       </div>
 
-      {/* Search */}
-      <div className="md:col-span-2">
-        <label className="text-xs text-emerald-200/70 mb-1 block">
+      {/* 🔍 Search */}
+      <div className="md:col-span-2 relative z-10">
+        <label className="text-xs text-yellow-100/80 mb-1 block">
           Search (email, name, board)
         </label>
         <input
@@ -204,14 +228,15 @@ const InviteAuditFilters = ({
           onChange={(e) => setSearch(e.target.value)}
           onBlur={resetAndRefetch}
           placeholder="e.g., alice@mail.com, Bob, Marketing Board"
-          className="w-full bg-[#11221c] border border-emerald-400/20 rounded-xl px-4 py-[10px]
-                     text-emerald-100 placeholder-emerald-300/40
-                     focus:outline-none focus:ring-2 focus:ring-emerald-400/40 transition duration-200 h-[42px]"
+          className="w-full bg-white/10 border border-yellow-400/20 rounded-xl px-4 py-[10px]
+                     text-yellow-100 placeholder-yellow-200/40
+                     focus:outline-none focus:ring-2 focus:ring-yellow-400/40 
+                     backdrop-blur-md transition duration-300 h-[42px]"
         />
       </div>
 
-      {/* Date Range */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* 📅 Date Range */}
+      <div className="grid grid-cols-2 gap-4 relative z-10">
         <GlassDatePicker
           label="From"
           value={dateFrom}

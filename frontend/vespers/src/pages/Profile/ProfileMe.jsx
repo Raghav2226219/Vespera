@@ -1,23 +1,83 @@
-// src/pages/Profile/ProfileMe.jsx
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import api from "../../api/axios";
-import { Edit3, Phone, Calendar, MapPin, User, LayoutDashboard } from "lucide-react";
+import {
+  Edit3,
+  Phone,
+  Calendar,
+  MapPin,
+  User,
+  LayoutDashboard,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
+import VesperaHologram from "../../components/VesperaHologram";
 
-const ProfileMe = () => {
+/* ---------------------- small helpers ---------------------- */
+const float = (d = 6, y = 10, x = 6) => ({
+  animate: { y: [0, -y, 0], x: [0, x, 0] },
+  transition: { duration: d, repeat: Infinity, ease: "easeInOut" },
+});
+
+const Chip = ({ label, delay = 0, style }) => (
+  <motion.div
+    style={style}
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.6, ease: "easeOut" }}
+    className="pointer-events-none absolute z-[8]"
+  >
+    <motion.div
+      {...float(5 + (delay % 3), 6, 4)}
+      className="rounded-xl border border-lime-400/30 bg-[rgba(10,30,26,0.55)]
+                 px-3 py-1 text-[11px] tracking-wide text-lime-200
+                 shadow-[0_0_18px_rgba(190,255,150,0.25)] backdrop-blur-md"
+      style={{
+        boxShadow:
+          "inset 0 0 0 1px rgba(255,255,150,0.1), 0 0 20px rgba(190,255,150,0.2)",
+      }}
+    >
+      {label}
+    </motion.div>
+  </motion.div>
+);
+
+/* Rebalanced chip layout */
+const CHIP_LAYOUT = [
+  { top: "8%", left: "6%", label: "Tasks" },
+  { top: "10%", left: "20%", label: "Boards" },
+  { top: "9%", left: "80%", label: "Quantum" },
+  { top: "12%", left: "92%", label: "Logs" },
+  { top: "20%", left: "8%", label: "Pulse" },
+  { top: "22%", left: "90%", label: "Neural Net" },
+  { top: "35%", left: "6%", label: "Vault" },
+  { top: "38%", left: "90%", label: "Sync Node" },
+  { top: "55%", left: "8%", label: "AI Bridge" },
+  { top: "58%", left: "88%", label: "Telemetry" },
+  { top: "70%", left: "14%", label: "Archive" },
+  { top: "72%", left: "80%", label: "Network" },
+  { top: "84%", left: "50%", label: "Projects" },
+  { top: "88%", left: "32%", label: "Flow" },
+  { top: "88%", left: "68%", label: "Nexus Beam" },
+];
+
+export default function ProfileMe() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const rotateX = useTransform(my, [0, 1], [8, -8]);
+  const rotateY = useTransform(mx, [0, 1], [-8, 8]);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await api.get("/profile/me");
+        const { data } = await api.get("/profile/me", { withCredentials: true });
         setProfile(data);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
@@ -29,131 +89,134 @@ const ProfileMe = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-white">
-        <p className="text-lg mb-4 opacity-80">No profile found.</p>
-        <a
-          href="/profile/create"
-          className="px-5 py-2.5 rounded-xl bg-emerald-500 text-gray-900 font-semibold hover:bg-emerald-400 hover:scale-105 transition-all shadow-md"
-        >
-          Create Profile
-        </a>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="text-lg mb-6 opacity-80">No profile found yet.</p>
+          <a
+            href="/profile/create"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 text-gray-900 font-semibold hover:scale-105 transition-all shadow-[0_0_25px_rgba(190,255,150,0.4)]"
+          >
+            Create Profile
+          </a>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#0B1111] via-[#071C1B] to-[#0B2C29] flex flex-col items-center text-white">
-      {/* Header Banner */}
-      <div className="relative w-full h-48 sm:h-56 bg-gradient-to-r from-emerald-600/90 via-emerald-500/80 to-teal-400/80 rounded-b-[2rem] overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.25 }}
-          transition={{ duration: 1 }}
-          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.25),transparent_70%)]"
-        />
+    <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white flex flex-col justify-center items-center">
+
+      {/* Ambient Glows */}
+      <motion.div className="absolute -top-24 -left-20 w-96 h-96 rounded-full bg-lime-400/15 blur-3xl" {...float(10, 14, 8)} />
+      <motion.div className="absolute -bottom-28 -right-24 w-[34rem] h-[34rem] rounded-full bg-yellow-400/10 blur-3xl" {...float(12, 12, 10)} />
+      <div className="absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:22px_22px] opacity-20 pointer-events-none" />
+
+      {/* Header */}
+      <div className="relative w-full h-40 flex items-center justify-center overflow-hidden">
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent tracking-tight"
+        >
+          Nexus Identity
+        </motion.h1>
+
+        {/* Scanning Beam */}
+        <div className="absolute bottom-8 w-[68%] max-w-[880px] h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent rounded-full overflow-hidden">
+          <motion.div
+            className="h-full w-[18%] bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
+            animate={{ x: ["-10%", "95%"] }}
+            transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
       </div>
 
-      {/* Floating Profile Card */}
-      <motion.div
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="-mt-20 w-[90%] max-w-3xl bg-[#0C1414]/90 backdrop-blur-md border border-emerald-400/10 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] p-8 sm:p-10 relative"
-      >
-        {/* Edit button */}
-        <a
-          href="/profile/edit"
-          className="absolute top-5 right-5 bg-emerald-400/10 border border-emerald-400/30 p-2 rounded-full hover:bg-emerald-400/20 hover:scale-105 transition-all"
+      {/* Floating Chips */}
+      {CHIP_LAYOUT.map((c, i) => (
+        <Chip key={i} label={c.label} delay={i * 0.05} style={{ top: c.top, left: c.left }} />
+      ))}
+
+      {/* Main Section */}
+      <div className="w-[90%] max-w-6xl mt-2 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10">
+        {/* Hologram */}
+        <div className="flex items-center justify-center">
+          <VesperaHologram />
+        </div>
+
+        {/* Info Section */}
+        <motion.div
+          style={{ rotateX, rotateY }}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            mx.set((e.clientX - rect.left) / rect.width);
+            my.set((e.clientY - rect.top) / rect.height);
+          }}
+          onMouseLeave={() => {
+            mx.set(0.5);
+            my.set(0.5);
+          }}
+          className="relative rounded-3xl border border-lime-400/25 bg-[rgba(10,26,22,0.55)]
+                     backdrop-blur-2xl shadow-[0_0_60px_rgba(190,255,150,0.18)] px-8 py-8"
         >
-          <Edit3 size={18} className="text-emerald-300" />
-        </a>
+          <motion.button
+            whileHover={{ scale: 1.06, rotate: 6 }}
+            className="absolute top-4 right-4 bg-lime-400/10 border border-lime-400/30 p-2 rounded-full hover:bg-yellow-400/10 transition-all"
+            onClick={() => navigate("/profile/edit")}
+          >
+            <Edit3 size={18} className="text-lime-300" />
+          </motion.button>
 
-        {/* Top Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-8">
-          <motion.img
-            src={
-              profile.profilePic ||
-              "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
-            }
-            alt="Profile"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 200 }}
-            className="w-32 h-32 rounded-2xl object-cover border-2 border-emerald-400/30 shadow-[0_0_25px_rgba(52,211,153,0.25)]"
-          />
+          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
+            {profile.name}
+          </h2>
+          <p className="text-lime-200/80 mt-1">{profile.email}</p>
+          <p className="text-yellow-200/80 text-sm mt-1">{profile.role || "User"}</p>
+          <p className="mt-3 text-sm text-lime-100/80 italic">
+            {profile.bio || "No bio added yet — tell us your story."}
+          </p>
 
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-transparent">
-              {profile.name}
-            </h1>
-            <p className="text-gray-400 text-sm mt-1">{profile.email}</p>
-            <p className="text-emerald-100/70 text-sm italic mt-2">
-              {profile.bio || "No bio added yet."}
-            </p>
+          <div className="my-6 h-px bg-gradient-to-r from-transparent via-lime-400/40 to-transparent" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <InfoCard icon={<Phone size={16} />} label="Phone" value={profile.phoneNumber || "Not added"} />
+            <InfoCard icon={<Calendar size={16} />} label="Date of Birth" value={profile.dob ? new Date(profile.dob).toLocaleDateString() : "Not set"} />
+            <InfoCard icon={<User size={16} />} label="Gender" value={profile.gender || "Not specified"} />
+            <InfoCard icon={<MapPin size={16} />} label="Address" value={profile.address || "Not provided"} />
           </div>
-        </div>
+        </motion.div>
+      </div>
 
-        {/* Divider Line */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent my-8" />
-
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <ProfileField
-            icon={<Phone size={16} />}
-            label="Phone"
-            value={profile.phoneNumber || "Not added"}
-          />
-          <ProfileField
-            icon={<Calendar size={16} />}
-            label="Date of Birth"
-            value={
-              profile.dob
-                ? new Date(profile.dob).toLocaleDateString()
-                : "Not set"
-            }
-          />
-          <ProfileField
-            icon={<User size={16} />}
-            label="Gender"
-            value={profile.gender || "Not specified"}
-          />
-          <ProfileField
-            icon={<MapPin size={16} />}
-            label="Address"
-            value={profile.address || "Not provided"}
-          />
-        </div>
-      </motion.div>
-
-      {/* Back to Dashboard Button */}
+      {/* Footer Button */}
       <motion.button
         onClick={() => navigate("/dashboard")}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 300 }}
-        className="mt-10 flex items-center gap-2 px-6 py-2.5 bg-emerald-500/90 text-gray-900 font-semibold rounded-xl hover:bg-emerald-400 hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] transition-all"
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.96 }}
+        className="mt-6 z-10 flex items-center gap-2 px-6 py-2.5 rounded-xl
+                   bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 text-gray-900 font-semibold
+                   shadow-[0_0_30px_rgba(190,255,150,0.35)] hover:shadow-[0_0_40px_rgba(255,255,150,0.45)] transition-all"
       >
         <LayoutDashboard size={18} />
         Back to Dashboard
       </motion.button>
     </div>
   );
-};
+}
 
-// Reusable info field
-const ProfileField = ({ icon, label, value }) => (
-  <motion.div
-    whileHover={{ scale: 1.02, borderColor: "rgba(52,211,153,0.4)" }}
-    transition={{ type: "spring", stiffness: 200 }}
-    className="flex flex-col gap-1 bg-[#101B1A]/70 border border-emerald-400/10 rounded-2xl p-4 hover:border-emerald-400/30 transition-all"
-  >
-    <div className="flex items-center gap-2 text-emerald-300 text-sm font-medium">
-      {icon}
-      <span>{label}</span>
-    </div>
-    <span className="text-white/90 font-medium text-sm tracking-wide">
-      {value}
-    </span>
-  </motion.div>
-);
-
-export default ProfileMe;
+/* ---- Reusable InfoCard ---- */
+function InfoCard({ icon, label, value }) {
+  return (
+    <motion.div
+      whileHover={{ y: -4, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 220, damping: 12 }}
+      className="relative overflow-hidden rounded-2xl border border-lime-400/25
+                 bg-[linear-gradient(135deg,rgba(8,20,18,0.7),rgba(4,10,9,0.6))]
+                 backdrop-blur-2xl p-4 sm:p-5 group transition-all duration-300"
+    >
+      <div className="flex items-center gap-2 text-lime-300 text-sm font-medium mb-1">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <p className="text-yellow-100 font-semibold text-sm tracking-wide">{value}</p>
+    </motion.div>
+  );
+}

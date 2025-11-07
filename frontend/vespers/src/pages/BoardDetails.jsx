@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import api from "../api/axios";
-import Loader from "../components/Loader"; // ✅ import your loader
+import Loader from "../components/Loader";
 
 const BoardDetails = () => {
   const { id } = useParams();
@@ -22,21 +22,20 @@ const BoardDetails = () => {
         setLoading(false);
       }
     };
-
     fetchBoard();
   }, [id]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900">
-        <Loader /> {/* ✅ show loader here */}
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-[#0b1914] via-[#132d1f] to-[#193a29]">
+        <Loader />
       </div>
     );
   }
 
   if (!board) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-red-400 font-semibold">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-[#0b1914] via-[#132d1f] to-[#193a29] text-yellow-300 font-semibold">
         Board not found.
       </div>
     );
@@ -44,80 +43,110 @@ const BoardDetails = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white px-6 py-8"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
+      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0b1914] via-[#132d1f] to-[#193a29] text-white px-6 py-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      {/* Back Button */}
-      <div className="max-w-5xl mx-auto mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-emerald-300 hover:text-emerald-200 transition-colors mb-4"
-        >
-          <ArrowLeft className="w-5 h-5 mr-1" /> Back
-        </button>
+      {/* 🌌 Ambient Lights & Effects */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <motion.div
+          animate={{
+            opacity: [0.15, 0.4, 0.15],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,150,0.1),transparent_70%)] blur-3xl"
+        />
+        <motion.div
+          animate={{ opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[2px] bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent"
+        />
+        <motion.div
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[70%] h-[2px] bg-gradient-to-r from-transparent via-lime-400/30 to-transparent"
+        />
       </div>
 
-      {/* Board Header */}
-      <motion.div
-        className="max-w-5xl mx-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-lg p-8"
-        initial={{ scale: 0.98, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-emerald-300">
-              {board.title}
-            </h1>
-            <p className="text-emerald-200/70 mt-1">
-              {board.description || "No description provided"}
-            </p>
-          </div>
+      {/* 🧭 Back Button */}
+      <div className="max-w-5xl mx-auto mb-8 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-yellow-300 hover:text-yellow-200 transition-all hover:scale-105"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back
+        </button>
 
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-semibold tracking-wide ${
-              board.status === "active"
-                ? "bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
-                : board.status === "archived"
-                ? "bg-yellow-400/20 text-yellow-300 border border-yellow-400/30"
-                : "bg-red-400/20 text-red-300 border border-red-400/30"
-            }`}
-          >
-            {board.status.toUpperCase()}
-          </span>
+        <motion.span
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold border shadow-md ${
+            board.status === "active"
+              ? "border-lime-400/30 bg-lime-400/10 text-lime-300"
+              : board.status === "archived"
+              ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-300"
+              : "border-red-400/30 bg-red-400/10 text-red-300"
+          }`}
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {board.status.toUpperCase()}
+        </motion.span>
+      </div>
+
+      {/* 🏛 Board Info Card */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        className="relative max-w-5xl mx-auto bg-gradient-to-br from-[#101d17]/90 via-[#1a3526]/80 to-[#1f4330]/90 
+                   border border-yellow-400/20 rounded-3xl backdrop-blur-2xl 
+                   shadow-[0_0_40px_rgba(255,255,150,0.15)] p-10 overflow-hidden"
+      >
+        {/* Animated holo line */}
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent animate-pulse" />
+
+        <div className="relative z-10">
+          <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 drop-shadow-[0_0_18px_rgba(255,255,150,0.3)]">
+            {board.title}
+          </h1>
+          <p className="text-lime-100/80 mt-3 text-lg leading-relaxed">
+            {board.description || "No description provided."}
+          </p>
         </div>
       </motion.div>
 
-      {/* Details Grid */}
-      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6 mt-8">
-        {/* Timestamps */}
+      {/* 📊 Details Section */}
+      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 mt-12">
+        {/* 🕒 Timestamps */}
         <motion.div
-          className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:border-emerald-400/30 hover:shadow-emerald-400/20 hover:shadow-lg transition-all"
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.03 }}
           transition={{ duration: 0.3 }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#0e1c16]/90 via-[#1b3a27]/85 to-[#234433]/90 
+                     border border-yellow-400/25 rounded-2xl p-6 backdrop-blur-xl 
+                     shadow-[0_0_25px_rgba(255,255,150,0.1)] hover:shadow-[0_0_40px_rgba(255,255,150,0.25)]"
         >
-          <h2 className="flex items-center text-lg font-semibold text-emerald-300 mb-3">
-            <Calendar className="w-5 h-5 mr-2" /> Timestamps
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent animate-pulse" />
+          <h2 className="flex items-center text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 mb-4 drop-shadow-[0_0_10px_rgba(255,255,150,0.25)]">
+            <Calendar className="w-5 h-5 mr-2 text-yellow-300" />
+            Timestamps
           </h2>
-          <div className="space-y-2 text-emerald-200/80">
+          <div className="space-y-3 text-lime-100/85">
             <p>
-              <strong>Created At:</strong>{" "}
-              {new Date(board.createdAt).toLocaleString()}
+              <strong>Created:</strong> {new Date(board.createdAt).toLocaleString()}
             </p>
             <p>
-              <strong>Updated At:</strong>{" "}
-              {new Date(board.updatedAt).toLocaleString()}
+              <strong>Updated:</strong> {new Date(board.updatedAt).toLocaleString()}
             </p>
             <p>
-              <strong>Archived At:</strong>{" "}
+              <strong>Archived:</strong>{" "}
               {board.archivedAt
                 ? new Date(board.archivedAt).toLocaleString()
                 : "—"}
             </p>
             <p>
-              <strong>Trashed At:</strong>{" "}
+              <strong>Trashed:</strong>{" "}
               {board.trashedAt
                 ? new Date(board.trashedAt).toLocaleString()
                 : "—"}
@@ -125,16 +154,20 @@ const BoardDetails = () => {
           </div>
         </motion.div>
 
-        {/* Ownership */}
+        {/* 👤 Ownership */}
         <motion.div
-          className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:border-emerald-400/30 hover:shadow-emerald-400/20 hover:shadow-lg transition-all"
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.03 }}
           transition={{ duration: 0.3 }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#0e1c16]/90 via-[#1b3a27]/85 to-[#234433]/90 
+                     border border-lime-400/25 rounded-2xl p-6 backdrop-blur-xl 
+                     shadow-[0_0_25px_rgba(255,255,150,0.1)] hover:shadow-[0_0_40px_rgba(255,255,150,0.25)]"
         >
-          <h2 className="flex items-center text-lg font-semibold text-emerald-300 mb-3">
-            <User className="w-5 h-5 mr-2" /> Ownership
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent animate-pulse" />
+          <h2 className="flex items-center text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 mb-4 drop-shadow-[0_0_10px_rgba(255,255,150,0.25)]">
+            <User className="w-5 h-5 mr-2 text-yellow-300" />
+            Ownership
           </h2>
-          <div className="space-y-2 text-emerald-200/80">
+          <div className="space-y-3 text-lime-100/85">
             <p>
               <strong>Owner:</strong>{" "}
               {board.owner?.name || "—"} ({board.owner?.email || "N/A"})

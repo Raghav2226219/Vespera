@@ -45,10 +45,10 @@ const AcceptInvitePage = () => {
           { withCredentials: true }
         );
 
-        showToast("✅ Invite accepted successfully!");
+        showToast("✨ Invite accepted successfully!");
         setStatus("success");
 
-        // 3️⃣ Redirect after short delay
+        // 3️⃣ Redirect
         setTimeout(() => {
           navigate(`/board/${acceptRes.data.boardId}`);
         }, 1800);
@@ -84,38 +84,45 @@ const AcceptInvitePage = () => {
   // ❌ Error screen
   if (status === "error")
     return (
-      <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white">
-        {/* Animated gradient overlay */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#0a0a0a] via-[#181a0f] to-[#1a1f0f] text-white">
+        {/* ✨ Animated yellow aura */}
         <motion.div
-          animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.05, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.15),transparent_70%)] blur-2xl"
+          animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.04, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,240,140,0.1),transparent_70%)] blur-3xl"
         />
 
-        {/* Error card */}
+        {/* 🌟 Error Card */}
         <motion.div
           initial={{ opacity: 0, y: 30, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="relative z-10 px-10 py-12 max-w-md text-center rounded-3xl border border-rose-400/20 
-                     bg-gray-900/60 backdrop-blur-2xl shadow-[0_0_50px_rgba(244,63,94,0.2)]"
+          className="relative z-10 px-10 py-12 max-w-md text-center rounded-3xl 
+                     border border-yellow-400/20 
+                     bg-gradient-to-br from-gray-950/70 via-yellow-950/20 to-gray-900/70 
+                     backdrop-blur-2xl shadow-[0_0_50px_rgba(255,255,120,0.25)]"
         >
           <motion.h2
-            initial={{ scale: 0.9 }}
-            animate={{ scale: [1, 1.03, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="text-4xl font-bold mb-3 bg-gradient-to-r from-rose-400 via-pink-400 to-rose-300 bg-clip-text text-transparent"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            className="text-4xl font-bold mb-3 bg-gradient-to-r from-yellow-400 via-lime-300 to-emerald-200 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,150,0.4)]"
           >
-            Invite Error
+            Invite Invalid
           </motion.h2>
-          <p className="text-rose-200 mb-8 leading-relaxed">
-            This invite is invalid, expired, or no longer available.
+
+          <p className="text-yellow-100/90 mb-8 leading-relaxed">
+            This invite link is invalid, expired, or no longer available.
           </p>
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/")}
-            className="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-500 hover:to-pink-400 text-white shadow-lg transition"
+            className="px-6 py-3 rounded-xl font-semibold 
+                       bg-gradient-to-r from-yellow-400 to-lime-400 
+                       hover:from-yellow-300 hover:to-lime-300 
+                       text-gray-900 shadow-[0_0_25px_rgba(255,255,150,0.4)] 
+                       transition-all duration-300"
           >
             Return Home
           </motion.button>
@@ -123,47 +130,80 @@ const AcceptInvitePage = () => {
       </div>
     );
 
-  // ✅ Success or awaiting login
+  // ✅ Success screen
   if (status === "success" && invite)
     return (
-      <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white overflow-hidden">
-        {/* Animated ambient light */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#0b1914] via-[#122d1e] to-[#1a3a29] text-white">
+        {/* ✨ Animated ambient holo glow */}
         <motion.div
-          animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.05, 1] }}
+          animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.03, 1] }}
           transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
-          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.18),transparent_70%)] blur-2xl"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,255,160,0.15),transparent_70%)] blur-3xl"
         />
 
         <Toast show={toast.show} message={toast.message} />
 
-        {/* Floating glass card */}
+        {/* 🌿 Holo Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative z-10 max-w-md w-full text-center p-10 rounded-3xl border border-emerald-400/20 
-                     bg-gradient-to-br from-gray-900/60 via-emerald-950/40 to-gray-900/60 
-                     shadow-[0_0_70px_rgba(16,185,129,0.3)] backdrop-blur-2xl"
+          className="relative z-10 max-w-md w-full text-center p-10 rounded-3xl border border-yellow-400/20 
+                     bg-gradient-to-br from-gray-900/70 via-lime-950/30 to-yellow-950/40 
+                     shadow-[0_0_60px_rgba(255,255,150,0.25)] backdrop-blur-2xl"
         >
+          {/* Holo shimmer border sweep */}
+          <motion.div
+            className="absolute top-0 left-[-40%] w-[60%] h-full bg-gradient-to-tr from-transparent via-yellow-200/10 to-transparent opacity-50"
+            animate={{ x: ["-40%", "130%"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          />
+
           <motion.h1
             animate={{ scale: [1, 1.04, 1] }}
             transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-            className="text-4xl font-extrabold text-transparent bg-gradient-to-r from-emerald-300 via-cyan-300 to-teal-200 bg-clip-text mb-5"
+            className="text-4xl font-extrabold text-transparent bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 bg-clip-text mb-5 drop-shadow-[0_0_15px_rgba(255,255,150,0.35)]"
           >
-            Invite Accepted 🌿
+            Invite Accepted ✨
           </motion.h1>
 
-          <p className="text-emerald-100 mb-6 leading-relaxed text-lg">
-            You’ve successfully joined{" "}
-            <span className="font-semibold text-cyan-300">{invite.boardTitle}</span> as{" "}
+          <p className="text-yellow-100/90 mb-6 leading-relaxed text-lg">
+            You’ve joined{" "}
+            <span className="font-semibold text-lime-300">{invite.boardTitle}</span> as{" "}
             <span className="text-yellow-300 font-semibold">{invite.role}</span>.
           </p>
 
-          <p className="text-emerald-200/70 text-sm">
+          <p className="text-yellow-200/70 text-sm">
             Redirecting you to your board workspace...
           </p>
+
+          {/* Floating particles aura */}
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 rounded-full bg-yellow-300/70 shadow-[0_0_10px_rgba(255,255,150,0.4)]"
+              initial={{
+                x: Math.random() * 200 - 100,
+                y: Math.random() * 120 - 60,
+                opacity: 0,
+                scale: 0,
+              }}
+              animate={{
+                y: [null, Math.random() * -50 - 20],
+                opacity: [0, 1, 0],
+                scale: [0.3, 1, 0.3],
+              }}
+              transition={{
+                delay: Math.random() * 1.5,
+                duration: 3 + Math.random() * 1.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
         </motion.div>
 
+        {/* 🔐 Login/Register modal */}
         <GlassModal
           show={showModal}
           onClose={() => setShowModal(false)}

@@ -12,14 +12,16 @@ const PortalAwareItem = ({ provided, snapshot, children }) => {
       {...provided.dragHandleProps}
       className={`
         relative group
-        bg-white/10 backdrop-blur-xl
-        border border-white/10
+        bg-gradient-to-br from-[#0a1812]/80 via-[#11261e]/60 to-[#172e28]/40
+        border border-emerald-400/20
         rounded-2xl p-4
-        shadow-lg transition-all duration-300 cursor-pointer
+        shadow-[0_0_25px_rgba(0,0,0,0.5)]
+        backdrop-blur-xl
+        transition-all duration-300 cursor-pointer
         ${
           snapshot.isDragging
-            ? "scale-105 shadow-emerald-500/50 bg-white/20 z-[9999]"
-            : "hover:shadow-emerald-500/20 hover:bg-white/15"
+            ? "scale-105 shadow-[0_0_30px_rgba(255,255,120,0.4)] border-yellow-400/50 bg-[#1a3a26]/90 z-[9999]"
+            : "hover:shadow-[0_0_20px_rgba(255,255,150,0.3)] hover:border-yellow-300/30"
         }
       `}
       style={{
@@ -27,6 +29,17 @@ const PortalAwareItem = ({ provided, snapshot, children }) => {
         zIndex: snapshot.isDragging ? 9999 : "auto",
       }}
     >
+      {/* ✨ Animated border shimmer */}
+      <div className="absolute inset-0 rounded-2xl pointer-events-none">
+        <div className="absolute inset-0 rounded-2xl border border-yellow-300/20 blur-[1px]" />
+        <div className="absolute inset-0 rounded-2xl border border-emerald-300/20" />
+      </div>
+
+      {/* 🌈 Holo line sweep */}
+      <div className="absolute inset-0 overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,180,0.15)_50%,transparent_100%)] animate-[shine_4s_linear_infinite]" />
+      </div>
+
       {children}
     </div>
   );
@@ -50,7 +63,6 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
     }
   };
 
-  // ✏️ Handle Task Update
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -63,7 +75,6 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
     }
   };
 
-  // Close menu on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -81,22 +92,6 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
     setMenuOpen((prev) => !prev);
   };
 
-  const handleUpdateTask = (updatedTask, columnId) => {
-  setColumns((prev) =>
-    prev.map((col) =>
-      col.id === columnId
-        ? {
-            ...col,
-            tasks: col.tasks.map((t) =>
-              t.id === updatedTask.id ? updatedTask : t
-            ),
-          }
-        : col
-    )
-  );
-};
-
-
   const draggableId = (task.id ?? task._id ?? `temp-${index}`).toString();
 
   return (
@@ -104,7 +99,7 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
       <Draggable draggableId={draggableId} index={index}>
         {(provided, snapshot) => (
           <PortalAwareItem provided={provided} snapshot={snapshot}>
-            <h3 className="text-lg font-semibold text-emerald-300 tracking-wide">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,150,0.4)]">
               {task.title}
             </h3>
 
@@ -114,11 +109,11 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
               </p>
             )}
 
-            {/* Three-dot menu */}
+            {/* 🟡 Three-dot menu */}
             <div className="absolute top-3 right-3">
               <button
                 onClick={handleMenuToggle}
-                className="text-emerald-200/70 hover:text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                className="text-yellow-300/70 hover:text-yellow-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               >
                 <MoreVertical size={18} />
               </button>
@@ -130,7 +125,7 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
                 <div
                   ref={menuRef}
                   onMouseLeave={() => setMenuOpen(false)}
-                  className="fixed z-[9999] w-40 bg-gray-900/90 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg animate-in fade-in slide-in-from-top-1"
+                  className="fixed z-[9999] w-40 bg-gradient-to-br from-[#0f1d17]/95 to-[#1a3229]/90 border border-yellow-300/20 rounded-xl shadow-[0_0_20px_rgba(255,255,120,0.25)] backdrop-blur-xl overflow-hidden"
                   style={{ top: menuPosition.top, left: menuPosition.left }}
                 >
                   <button
@@ -138,11 +133,10 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
                       setEditModal(true);
                       setMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-emerald-400 hover:bg-emerald-500/10 transition-colors rounded-lg"
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-lime-300 hover:bg-yellow-200/10 transition-colors rounded-lg"
                   >
                     <Pencil size={14} /> Edit Task
                   </button>
-
                   <button
                     onClick={handleDelete}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors rounded-lg"
@@ -160,8 +154,8 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
       {editModal &&
         createPortal(
           <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-            <div className="bg-gray-900/90 border border-white/10 rounded-2xl p-6 w-96 shadow-lg">
-              <h2 className="text-xl font-semibold text-emerald-300 mb-4">
+            <div className="bg-gradient-to-br from-[#091611]/95 to-[#112920]/90 border border-yellow-300/20 rounded-2xl p-6 w-96 shadow-[0_0_40px_rgba(255,255,120,0.3)]">
+              <h2 className="text-xl font-semibold bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-300 bg-clip-text text-transparent mb-4">
                 Edit Task
               </h2>
               <form onSubmit={handleUpdate} className="space-y-4">
@@ -170,14 +164,14 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Task Title"
-                  className="w-full px-3 py-2 rounded-lg bg-gray-800/80 text-white border border-white/10 focus:border-emerald-400 outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-[#0d201a]/80 text-white border border-yellow-300/20 focus:border-yellow-400 outline-none"
                   required
                 />
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Task Description"
-                  className="w-full px-3 py-2 rounded-lg bg-gray-800/80 text-white border border-white/10 focus:border-emerald-400 outline-none resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-[#0d201a]/80 text-white border border-yellow-300/20 focus:border-yellow-400 outline-none resize-none"
                   rows="3"
                 />
                 <div className="flex justify-end gap-2 pt-2">
@@ -190,7 +184,7 @@ const TaskCard = ({ task, index, onDelete, onUpdate }) => {
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-2 text-sm rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition"
+                    className="px-3 py-2 text-sm rounded-lg bg-gradient-to-r from-yellow-300 to-lime-300 text-gray-900 font-semibold hover:shadow-[0_0_20px_rgba(255,255,120,0.4)] transition"
                   >
                     Save
                   </button>

@@ -3,11 +3,16 @@ import { motion } from "framer-motion";
 import api from "../api/axios";
 import TrashBoardCard from "../components/TrashBoardCard";
 import TrashHeader from "../components/TrashHeader";
-import Toast from "../components/Toast"; // ✅ Added import
+import Toast from "../components/Toast";
 
 const containerVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
 };
 
 const TrashPage = () => {
@@ -19,7 +24,7 @@ const TrashPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ Toast state (moved here)
+  // ✅ Toast state
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
 
@@ -29,7 +34,7 @@ const TrashPage = () => {
     setTimeout(() => setShowToast(false), 4000);
   };
 
-  // ✅ Fetch trashed boards once
+  // ✅ Fetch trashed boards
   useEffect(() => {
     const fetchTrashedBoards = async () => {
       try {
@@ -47,7 +52,7 @@ const TrashPage = () => {
     fetchTrashedBoards();
   }, []);
 
-  // ✅ Filtering + Sorting logic
+  // ✅ Search + Sort
   useEffect(() => {
     const timer = setTimeout(() => {
       let filtered = [...boards];
@@ -88,7 +93,6 @@ const TrashPage = () => {
     }
   };
 
-  // ✅ Instantly remove a card after delete/restore
   const handleActionComplete = (boardId) => {
     setBoards((prev) =>
       prev.filter((b) => b._id !== boardId && b.id !== boardId)
@@ -99,15 +103,52 @@ const TrashPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8 overflow-y-visible">
-      {/* ✅ Global Toast */}
+    <div
+      className="relative min-h-screen w-full 
+                 bg-gradient-to-br from-[#0b1914] via-[#132d1f] to-[#193a29]
+                 text-white p-4 md:p-8 overflow-hidden no-scrollbar"
+    >
+      {/* 🌌 Animated Background Glows */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            x: [0, 40, -40, 0],
+            y: [0, -25, 25, 0],
+            opacity: [0.4, 0.7, 0.4],
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[25%] left-[15%] w-[28rem] h-[28rem] bg-yellow-400/15 blur-[120px] rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -40, 40, 0],
+            y: [0, 25, -25, 0],
+            opacity: [0.4, 0.8, 0.4],
+          }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-[20%] right-[15%] w-[30rem] h-[30rem] bg-lime-400/10 blur-[120px] rounded-full"
+        />
+        <motion.div
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: 6, repeat: Infinity }}
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-yellow-300/40 to-transparent"
+        />
+        <motion.div
+          animate={{ opacity: [0.2, 0.7, 0.2] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[70%] h-[2px] bg-gradient-to-r from-transparent via-lime-300/30 to-transparent"
+        />
+      </div>
+
+      {/* ✅ Toast */}
       <Toast show={showToast} message={toastMessage} />
 
+      {/* 🧩 Main Section */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="max-w-7xl mx-auto relative"
+        className="max-w-7xl mx-auto relative z-10"
       >
         <TrashHeader
           search={search}
@@ -118,16 +159,17 @@ const TrashPage = () => {
           setDropdownOpen={setDropdownOpen}
         />
 
+        {/* ✅ Status States */}
         {loading ? (
-          <div className="text-center py-24 text-emerald-200/80 text-lg">
+          <div className="text-center py-24 text-yellow-200/80 text-lg">
             Loading trashed boards…
           </div>
         ) : error ? (
-          <div className="text-center py-8 text-rose-300 bg-rose-900/20 rounded-lg max-w-md mx-auto">
+          <div className="text-center py-8 text-yellow-300 bg-yellow-900/20 rounded-lg max-w-md mx-auto border border-yellow-400/30">
             {error}
           </div>
         ) : filteredBoards.length === 0 ? (
-          <div className="text-center text-emerald-200/70 mt-16 text-lg">
+          <div className="text-center text-yellow-200/70 mt-16 text-lg">
             No trashed boards found.
           </div>
         ) : (
@@ -137,12 +179,19 @@ const TrashPage = () => {
                 key={b._id || b.id}
                 board={b}
                 onActionComplete={handleActionComplete}
-                showToastMessage={showToastMessage} // ✅ passed down
+                showToastMessage={showToastMessage}
               />
             ))}
           </div>
         )}
       </motion.div>
+
+      {/* ✨ Bottom Glow Line */}
+      <motion.div
+        animate={{ opacity: [0.3, 0.8, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity }}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[60%] h-[2px] bg-gradient-to-r from-transparent via-yellow-300/50 to-transparent"
+      />
     </div>
   );
 };

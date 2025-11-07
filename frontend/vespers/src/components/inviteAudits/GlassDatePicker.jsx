@@ -1,11 +1,10 @@
-// src/components/inviteAudits/GlassDatePicker.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays } from "lucide-react";
 
 const GlassDatePicker = ({ label, value, onChange }) => {
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState("days"); // "days" | "months" | "years"
+  const [view, setView] = useState("days");
   const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null);
   const [currentMonth, setCurrentMonth] = useState(
     selectedDate ? new Date(selectedDate) : new Date()
@@ -30,32 +29,26 @@ const GlassDatePicker = ({ label, value, onChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ---------- Calculate position on open ---------- */
+  /* ---------- Position ---------- */
   useEffect(() => {
     if (open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const calendarHeight = 310; // Approx. px
+      const calendarHeight = 310;
       const calendarWidth = 256;
-
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const direction = spaceBelow < calendarHeight ? "up" : "down";
 
       const spaceRight = window.innerWidth - rect.left;
       const adjustedLeft =
         spaceRight < calendarWidth ? window.innerWidth - calendarWidth - 12 : rect.left;
 
       setPosition({
-        top:
-          direction === "down"
-            ? rect.bottom + window.scrollY + 6
-            : rect.top + window.scrollY - calendarHeight - 6,
+        top: rect.bottom + window.scrollY + 6,
         left: adjustedLeft + window.scrollX,
-        direction,
+        direction: "down",
       });
     }
   }, [open]);
 
-  /* ---------- Calendar Logic ---------- */
+  /* ---------- Date Logic ---------- */
   const handleSelect = (date) => {
     setSelectedDate(date);
     onChange({ target: { value: date.toISOString().split("T")[0] } });
@@ -110,54 +103,66 @@ const GlassDatePicker = ({ label, value, onChange }) => {
   }
 
   return (
-    <div className="relative flex flex-col justify-end h-full">
-      <label className="text-xs text-emerald-200/70 mb-1 block leading-none">{label}</label>
+    <div className="relative flex flex-col justify-end h-full text-sm">
+      {label && (
+        <label className="text-xs text-lime-200/80 mb-1 block leading-none">
+          {label}
+        </label>
+      )}
 
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-[10px] rounded-xl
-                   bg-[#11221c] border border-emerald-400/20 
-                   text-emerald-100 font-medium
-                   hover:bg-[#153029] transition-all duration-200
-                   h-[42px] leading-none"
+        className="w-full flex items-center justify-between px-3 py-[9px] rounded-xl
+             bg-[#11221c] border border-lime-400/25 
+             text-lime-100 font-medium text-sm
+             hover:bg-[#153029] hover:shadow-[0_0_10px_rgba(255,255,150,0.15)]
+             focus:ring-2 focus:ring-lime-400/40
+             transition-all duration-200 h-[42px] leading-none gap-2"
+        style={{ lineHeight: "normal" }}
       >
         <span className="truncate">
           {selectedDate ? selectedDate.toLocaleDateString("en-IN") : "dd-mm-yyyy"}
         </span>
-        <CalendarDays className="w-4 h-4 ml-2 text-emerald-300 flex-shrink-0" />
+        <CalendarDays className="w-[17px] h-[17px] text-yellow-300/80 flex-shrink-0 translate-y-[0.5px]" />
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
             ref={calendarRef}
-            initial={{ opacity: 0, y: position.direction === "down" ? -6 : 6 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: position.direction === "down" ? -6 : 6 }}
+            exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
             style={{
               position: "absolute",
-              top: position.direction === "down" ? "calc(100% + 6px)" : "auto",
-              bottom: position.direction === "up" ? "calc(100% + 6px)" : "auto",
+              top: "calc(100% + 6px)",
               left: 0,
               zIndex: 9999,
             }}
-            className="w-64 p-4 rounded-2xl bg-gradient-to-b from-[#0E1F1A] to-[#133227]
-                       border border-[#1E3A34] shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+            className="w-64 p-4 rounded-2xl bg-gradient-to-b from-[#0F231D] via-[#152E27] to-[#183728]
+                       border border-lime-400/25 shadow-[0_0_25px_rgba(255,255,150,0.25)]
+                       backdrop-blur-xl"
           >
             {/* Header */}
             <div
               onClick={handleToggleView}
-              className="flex items-center justify-between mb-3 text-sm text-emerald-200 font-semibold cursor-pointer select-none"
+              className="flex items-center justify-between mb-3 text-sm font-semibold text-lime-200 cursor-pointer select-none"
             >
-              <button onClick={handlePrevMonth} className="hover:text-emerald-400 px-1">
+              <button
+                onClick={handlePrevMonth}
+                className="hover:text-yellow-300 px-1 transition-colors"
+              >
                 ‹
               </button>
-              <span>
+              <span className="bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
                 {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
               </span>
-              <button onClick={handleNextMonth} className="hover:text-emerald-400 px-1">
+              <button
+                onClick={handleNextMonth}
+                className="hover:text-yellow-300 px-1 transition-colors"
+              >
                 ›
               </button>
             </div>
@@ -165,13 +170,13 @@ const GlassDatePicker = ({ label, value, onChange }) => {
             {/* Year View */}
             {view === "years" && (
               <div>
-                <div className="flex justify-between text-xs text-emerald-300 mb-2">
+                <div className="flex justify-between text-xs text-lime-300 mb-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setYearOffset((prev) => prev - 25);
                     }}
-                    className="hover:text-emerald-400"
+                    className="hover:text-yellow-300"
                   >
                     ◀ Prev
                   </button>
@@ -180,20 +185,20 @@ const GlassDatePicker = ({ label, value, onChange }) => {
                       e.stopPropagation();
                       setYearOffset((prev) => prev + 25);
                     }}
-                    className="hover:text-emerald-400"
+                    className="hover:text-yellow-300"
                   >
                     Next ▶
                   </button>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-center text-emerald-100 max-h-56 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-3 gap-2 text-center text-lime-100 max-h-56 overflow-y-auto custom-scrollbar">
                   {years.map((year) => (
                     <div
                       key={year}
                       onClick={() => handleYearSelect(year)}
                       className={`p-2 rounded-lg cursor-pointer transition text-sm ${
                         year === currentMonth.getFullYear()
-                          ? "bg-emerald-600/70 text-white"
-                          : "hover:bg-emerald-500/20 hover:text-emerald-300"
+                          ? "bg-gradient-to-r from-lime-400 via-yellow-300 to-lime-400 text-gray-900 font-semibold"
+                          : "hover:bg-lime-400/10 hover:text-yellow-200"
                       }`}
                     >
                       {year}
@@ -205,7 +210,7 @@ const GlassDatePicker = ({ label, value, onChange }) => {
 
             {/* Month View */}
             {view === "months" && (
-              <div className="grid grid-cols-3 gap-2 text-center text-emerald-100">
+              <div className="grid grid-cols-3 gap-2 text-center text-lime-100">
                 {monthNames.map((m, i) => (
                   <div
                     key={m}
@@ -215,8 +220,8 @@ const GlassDatePicker = ({ label, value, onChange }) => {
                     }}
                     className={`p-2 rounded-lg cursor-pointer transition text-sm ${
                       i === currentMonth.getMonth()
-                        ? "bg-emerald-600/70 text-white"
-                        : "hover:bg-emerald-500/20 hover:text-emerald-300"
+                        ? "bg-gradient-to-r from-lime-400 via-yellow-300 to-lime-400 text-gray-900 font-semibold"
+                        : "hover:bg-lime-400/10 hover:text-yellow-200"
                     }`}
                   >
                     {m.substring(0, 3)}
@@ -228,7 +233,7 @@ const GlassDatePicker = ({ label, value, onChange }) => {
             {/* Days View */}
             {view === "days" && (
               <>
-                <div className="grid grid-cols-7 text-center text-emerald-300/80 text-xs mb-2">
+                <div className="grid grid-cols-7 text-center text-lime-300/80 text-xs mb-2">
                   {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
                     <div key={d}>{d}</div>
                   ))}
@@ -247,8 +252,8 @@ const GlassDatePicker = ({ label, value, onChange }) => {
                             ? ""
                             : selectedDate &&
                               d.toDateString() === selectedDate.toDateString()
-                            ? "bg-emerald-600/70 text-white"
-                            : "text-emerald-100 hover:bg-emerald-500/20 hover:text-emerald-300"
+                            ? "bg-gradient-to-r from-lime-400 via-yellow-300 to-lime-400 text-gray-900 font-semibold"
+                            : "text-lime-100 hover:bg-lime-400/10 hover:text-yellow-200"
                         }`}
                     >
                       {d ? d.getDate() : ""}

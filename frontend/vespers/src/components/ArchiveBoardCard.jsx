@@ -3,9 +3,9 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { MoreVertical } from "lucide-react";
 import api from "../api/axios";
-import ConfirmDeleteModal from "./ConfirmDeleteModal"; // ✅ modal for confirmation
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-// ✅ Dropdown rendered via portal
+// 🌌 Dropdown via Portal
 const DropdownPortal = ({ rect, children }) => {
   if (!rect) return null;
   const style = {
@@ -24,7 +24,6 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
   const [processing, setProcessing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // ✅ Close dropdown when clicking outside or scrolling
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuButtonRef.current && !menuButtonRef.current.contains(e.target)) {
@@ -50,10 +49,9 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
     e.stopPropagation();
     const rect = menuButtonRef.current?.getBoundingClientRect();
     setBtnRect(rect || null);
-    setMenuOpen((prev) => !prev);
+    setMenuOpen((p) => !p);
   };
 
-  // ✅ Handle restore & delete actions
   const handleMenuAction = async (action) => {
     setMenuOpen(false);
     if (processing) return;
@@ -97,99 +95,76 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
 
   return (
     <>
-      {/* ✅ Confirm Modal */}
+      {/* 🔥 Confirm Modal */}
       <ConfirmDeleteModal
         show={showConfirm}
         onConfirm={handlePermanentDelete}
         onCancel={() => setShowConfirm(false)}
       />
 
+      {/* 🟡 Card */}
       <motion.div
-        initial={{ rotateX: 0, rotateY: 0, scale: 1 }}
-        whileHover={{
-          rotateX: 4,
-          rotateY: -4,
-          y: -6,
-          scale: 1.04,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 180,
-          damping: 16,
-        }}
-        className="relative group w-80 h-56 md:w-88 md:h-60 cursor-pointer select-none"
-        style={{ perspective: 1000 }}
+        whileHover={{ y: -6, scale: 1.05, rotateY: 4 }}
+        transition={{ type: "spring", stiffness: 180, damping: 16 }}
+        className="relative group w-80 h-56 cursor-pointer select-none rounded-3xl overflow-hidden
+                   bg-gradient-to-br from-[#0b1914]/90 via-[#143121]/85 to-[#1a3e28]/85
+                   border border-lime-400/20 backdrop-blur-2xl
+                   shadow-[0_0_35px_rgba(255,255,150,0.08)]
+                   hover:shadow-[0_0_50px_rgba(255,255,150,0.25)]
+                   transition-all duration-700"
       >
-        {/* Ambient Halo */}
+        {/* ✨ Animated border & holo beam */}
         <motion.div
-          className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-emerald-400/30 via-cyan-400/20 to-transparent opacity-40 blur-xl transition-all duration-700"
-          whileHover={{ opacity: 0.9, scale: 1.05 }}
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ repeat: Infinity, duration: 3 }}
+          className="absolute inset-0 rounded-3xl border border-yellow-300/20 pointer-events-none"
+        />
+        <motion.div
+          animate={{ x: ["-150%", "150%"] }}
+          transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+          className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-tr from-transparent via-yellow-200/10 to-transparent opacity-50 blur-lg"
         />
 
-        {/* Main Card */}
-        <motion.div
-          className="relative z-10 h-full w-full rounded-3xl p-6 flex flex-col justify-between overflow-hidden
-                   border border-emerald-400/20 backdrop-blur-2xl
-                   bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900
-                   shadow-[0_0_25px_rgba(0,0,0,0.6)]
-                   group-hover:shadow-[0_0_50px_rgba(16,185,129,0.5)]
-                   transition-all duration-700 ease-out"
-        >
-          {/* Animated border pulse */}
-          <motion.div
-            animate={{ opacity: [0.2, 0.6, 0.2] }}
-            transition={{ repeat: Infinity, duration: 3 }}
-            className="absolute inset-0 rounded-3xl border border-emerald-400/30 pointer-events-none"
-          />
+        {/* 💫 Card Content */}
+        <div className="relative z-10 flex flex-col justify-between h-full p-6">
+          <div className="flex justify-between items-start">
+            <motion.h3
+              className="text-2xl font-extrabold text-transparent bg-clip-text 
+                         bg-gradient-to-r from-yellow-300 via-lime-300 to-emerald-200
+                         drop-shadow-[0_0_12px_rgba(255,255,150,0.35)]"
+              whileHover={{ scale: 1.08 }}
+            >
+              {board.title}
+            </motion.h3>
 
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            {/* Title and Menu */}
-            <div className="flex justify-between items-start">
-              <motion.h3
-                className="text-2xl font-extrabold tracking-wide text-transparent bg-clip-text
-                         bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200
-                         drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]
-                         transition-transform duration-500"
-                whileHover={{ scale: 1.07 }}
-              >
-                {board.title}
-              </motion.h3>
-
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
-                <button
-                  ref={menuButtonRef}
-                  onClick={toggleMenu}
-                  className="p-1.5 rounded-full hover:bg-emerald-400/20 transition-colors duration-300"
-                  aria-haspopup="true"
-                  aria-expanded={menuOpen}
-                  aria-label="Board actions"
-                >
-                  <MoreVertical className="w-5 h-5 text-emerald-300" />
-                </button>
-              </div>
-            </div>
-
-            <p className="text-sm text-white/80 mt-2 line-clamp-2 leading-snug">
-              {board.description || "No description provided."}
-            </p>
-
-            <div className="text-xs text-emerald-200/80 mt-4">
-              🗓 Archived on{" "}
-              <span className="text-emerald-300">
-                {new Date(board.archivedAt).toLocaleDateString()}
-              </span>
-            </div>
+            <button
+              ref={menuButtonRef}
+              onClick={toggleMenu}
+              className="p-1.5 rounded-full hover:bg-yellow-400/20 transition-all duration-300"
+            >
+              <MoreVertical className="w-5 h-5 text-yellow-300" />
+            </button>
           </div>
-        </motion.div>
 
-        {/* Bottom Glow */}
+          <p className="text-sm text-lime-100/80 mt-2 line-clamp-2 leading-snug">
+            {board.description || "No description provided."}
+          </p>
+
+          <div className="text-xs text-yellow-200/70 mt-4">
+            🗓 Archived on{" "}
+            <span className="text-yellow-300 font-medium">
+              {new Date(board.archivedAt).toLocaleDateString()}
+            </span>
+          </div>
+        </div>
+
+        {/* 🌟 Bottom Glow */}
         <motion.div
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-44 h-8 bg-emerald-400/20 blur-3xl rounded-full"
-          whileHover={{ opacity: 1, scale: 1.2, blur: "40px" }}
-          transition={{ duration: 0.6 }}
+          className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-10 bg-yellow-300/20 blur-3xl rounded-full"
+          whileHover={{ opacity: 1, scale: 1.2 }}
         />
 
-        {/* ✅ Dropdown */}
+        {/* ⚙ Dropdown */}
         <AnimatePresence>
           {menuOpen && (
             <DropdownPortal rect={btnRect}>
@@ -198,7 +173,7 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
-                className="w-44 rounded-xl bg-gray-900/95 border border-emerald-400/20 shadow-xl backdrop-blur-md z-50 overflow-hidden"
+                className="w-44 rounded-xl bg-[#0d1c15]/90 border border-lime-400/20 shadow-xl backdrop-blur-xl overflow-hidden"
               >
                 <button
                   disabled={processing}
@@ -206,7 +181,7 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
                     e.stopPropagation();
                     handleMenuAction("restore");
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/20 transition"
+                  className="w-full text-left px-4 py-2 text-sm text-lime-200 hover:bg-lime-500/10 transition"
                 >
                   ♻ Restore
                 </button>
