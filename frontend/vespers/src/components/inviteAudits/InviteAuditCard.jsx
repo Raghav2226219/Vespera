@@ -201,10 +201,18 @@ const InviteAuditCard = ({ log, idx, onCancelSuccess }) => {
                   <span className="text-yellow-200/60 italic">Unknown</span>
                 )}
               </p>
+
+              {/* ✅ Conditional acceptance message */}
               {log.acceptedBy ? (
                 <p>
                   <span className="text-lime-300 font-medium">Accepted By:</span>{" "}
                   {log.acceptedBy.name} ({log.acceptedBy.email})
+                </p>
+              ) : log.action === "CANCELLED" ? (
+                <p className="text-red-300 italic">Invite cancelled</p>
+              ) : log.action === "SUSPICIOUS" ? (
+                <p className="text-orange-300 italic">
+                  Invite cancelled due to security reasons ⚠️
                 </p>
               ) : (
                 <p className="text-yellow-200/70 italic">Awaiting acceptance…</p>
