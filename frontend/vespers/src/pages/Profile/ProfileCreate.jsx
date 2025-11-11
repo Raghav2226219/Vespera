@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -9,6 +9,7 @@ import {
   Quote,
   Image as ImageIcon,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import api from "../../api/axios";
 import heroImg from "../../assets/vespera-hero.png";
@@ -52,6 +53,7 @@ export default function Profile() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setErr("");
     setOk("");
     setLoading(true);
@@ -118,71 +120,7 @@ export default function Profile() {
       {/* Layout */}
       <div className="h-full w-full px-4 md:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 place-items-center">
         {/* LEFT: Visual Hero */}
-        <div className="relative hidden lg:flex h-[82vh] w-full items-center justify-center">
-          <motion.div
-            className="absolute -z-0 h-[460px] w-[460px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(190,255,150,0.2), rgba(255,255,150,0.08), transparent 70%)",
-              filter: "drop-shadow(0 0 24px rgba(255,255,150,0.25))",
-            }}
-            animate={{ scale: [1, 1.03, 1] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="relative z-10 rounded-3xl border border-lime-400/20 bg-white/5 backdrop-blur-2xl p-6"
-            style={{ width: 420 }}
-            {...pulseBorder}
-          >
-            <div className="relative aspect-square overflow-hidden rounded-2xl border border-lime-400/20 bg-gradient-to-b from-gray-900/50 to-gray-900/20">
-              <img
-                src={heroImg}
-                alt="3D Character"
-                className="h-full w-full object-contain"
-              />
-              <motion.div
-                className="pointer-events-none absolute inset-0"
-                animate={{
-                  background: [
-                    "linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%)",
-                    "linear-gradient(105deg,transparent 60%,rgba(255,255,255,0.06) 70%,transparent 80%)",
-                    "linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%)",
-                  ],
-                }}
-                transition={{
-                  duration: 4.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-lime-200/80">Welcome to</p>
-                <h3 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
-                  Vespera Nexus
-                </h3>
-              </div>
-              <div className="rounded-xl border border-lime-400/30 bg-lime-400/10 px-3 py-1 text-xs text-lime-200">
-                Live Preview
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div className="absolute -left-6 bottom-20">
-            <TechChip label="HTML" />
-          </motion.div>
-          <motion.div className="absolute right-6 top-16">
-            <TechChip label="CSS" />
-          </motion.div>
-          <motion.div className="absolute -right-8 bottom-12">
-            <TechChip label="JS" />
-          </motion.div>
-          <motion.div className="absolute left-8 top-10">
-            <TechChip label="React" />
-          </motion.div>
-        </div>
+        <LeftVisualHero />
 
         {/* RIGHT: Form */}
         <motion.div
@@ -198,26 +136,7 @@ export default function Profile() {
           <div className="absolute left-0 right-0 top-0 mx-auto h-12 rounded-t-3xl bg-gradient-to-b from-lime-400/25 to-transparent" />
 
           <div className="relative z-10 h-full p-6 sm:p-8 flex flex-col">
-            <header className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
-                  Create Your Profile
-                </h1>
-                <p className="text-lime-200/70 text-xs sm:text-sm">
-                  A polished identity helps teammates recognize your work.
-                </p>
-              </div>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="group inline-flex items-center gap-2 rounded-xl border border-lime-400/25 bg-white/5 px-3 py-2 text-xs text-lime-100 hover:border-lime-400/40 hover:bg-lime-400/10 transition"
-              >
-                <LayoutDashboard
-                  size={16}
-                  className="group-hover:rotate-6 transition"
-                />
-                Dashboard
-              </button>
-            </header>
+            <Header navigate={navigate} />
 
             {err && (
               <div className="mb-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
@@ -230,8 +149,15 @@ export default function Profile() {
               </div>
             )}
 
+            {/* ✅ Added prevention for unintended Enter submits */}
             <form
               onSubmit={onSubmit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+                  // Allow Enter only in textareas
+                  e.preventDefault();
+                }
+              }}
               className="grid grid-cols-1 sm:grid-cols-2 gap-3 select-none"
             >
               <Field
@@ -240,7 +166,7 @@ export default function Profile() {
                 name="name"
                 value={form.name}
                 onChange={onChange}
-                placeholder="Raghav Kaushal"
+                placeholder="Sam"
                 required
               />
               <Field
@@ -249,7 +175,7 @@ export default function Profile() {
                 name="phoneNumber"
                 value={form.phoneNumber}
                 onChange={onChange}
-                placeholder="+91 98765 43210"
+                placeholder="+91 xxxxxxxxxx"
                 required
               />
               <GlassDatePickerField
@@ -316,7 +242,107 @@ export default function Profile() {
   );
 }
 
-/* ----- UI components ----- */
+/* ----- Components ----- */
+
+function Header({ navigate }) {
+  return (
+    <header className="mb-4 flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
+          Create Your Profile
+        </h1>
+        <p className="text-lime-200/70 text-xs sm:text-sm">
+          A polished identity helps teammates recognize your work.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => navigate("/dashboard")}
+        className="group inline-flex items-center gap-2 rounded-xl border border-lime-400/25 bg-white/5 px-3 py-2 text-xs text-lime-100 hover:border-lime-400/40 hover:bg-lime-400/10 transition"
+      >
+        <LayoutDashboard
+          size={16}
+          className="group-hover:rotate-6 transition"
+        />
+        Dashboard
+      </button>
+    </header>
+  );
+}
+
+function LeftVisualHero() {
+  return (
+    <div className="relative hidden lg:flex h-[82vh] w-full items-center justify-center">
+      {/* Floating Glow Core */}
+      <motion.div
+        className="absolute -z-0 h-[460px] w-[460px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(190,255,150,0.2), rgba(255,255,150,0.08), transparent 70%)",
+          filter: "drop-shadow(0 0 24px rgba(255,255,150,0.25))",
+        }}
+        animate={{ scale: [1, 1.03, 1] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Hero Card */}
+      <motion.div
+        className="relative z-10 rounded-3xl border border-lime-400/20 bg-white/5 backdrop-blur-2xl p-6"
+        style={{ width: 420 }}
+        {...pulseBorder}
+      >
+        <div className="relative aspect-square overflow-hidden rounded-2xl border border-lime-400/20 bg-gradient-to-b from-gray-900/50 to-gray-900/20">
+          <img
+            src={heroImg}
+            alt="3D Character"
+            className="h-full w-full object-contain"
+          />
+          <motion.div
+            className="pointer-events-none absolute inset-0"
+            animate={{
+              background: [
+                "linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%)",
+                "linear-gradient(105deg,transparent 60%,rgba(255,255,255,0.06) 70%,transparent 80%)",
+                "linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%)",
+              ],
+            }}
+            transition={{
+              duration: 4.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-lime-200/80">Welcome to</p>
+            <h3 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
+              Vespera Nexus
+            </h3>
+          </div>
+          <div className="rounded-xl border border-lime-400/30 bg-lime-400/10 px-3 py-1 text-xs text-lime-200">
+            Live Preview
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ✅ Restored Floating Tech Chips */}
+      <motion.div className="absolute -left-6 bottom-20">
+        <TechChip label="HTML" />
+      </motion.div>
+      <motion.div className="absolute right-6 top-16">
+        <TechChip label="CSS" />
+      </motion.div>
+      <motion.div className="absolute -right-8 bottom-12">
+        <TechChip label="JS" />
+      </motion.div>
+      <motion.div className="absolute left-8 top-10">
+        <TechChip label="React" />
+      </motion.div>
+    </div>
+  );
+}
 
 function Label({ children }) {
   return (
@@ -368,32 +394,77 @@ function TextArea({ icon, label, className = "", rows = 2, ...props }) {
 }
 
 function GenderSelect({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const options = ["Male", "Female", "Other"];
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (val) => {
+    onChange({ target: { name: "gender", value: val } });
+    setOpen(false);
+  };
+
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 relative" ref={ref}>
       <Label>Gender</Label>
-      <div className="relative">
-        <select
-          name="gender"
-          value={value}
-          onChange={onChange}
-          className="w-full rounded-xl border border-lime-400/25 bg-[#11221c] px-3 py-2.5 pr-9 text-sm 
-             text-lime-100 outline-none focus:ring-2 focus:ring-lime-400/40 
-             hover:bg-[#153029] transition-all duration-200 appearance-none"
-          required
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl
+                   bg-[#11221c] border border-lime-400/25 text-sm text-lime-100
+                   hover:bg-[#153029] hover:shadow-[0_0_10px_rgba(255,255,150,0.15)]
+                   focus:ring-2 focus:ring-lime-400/40 transition-all duration-200 h-[42px]"
+      >
+        <span className="truncate">{value || "Select"}</span>
+        <motion.div
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.25 }}
         >
-          <option value="">Select</option>
-          <option value="Male" className="text-black">
-            Male
-          </option>
-          <option value="Female" className="text-black">
-            Female
-          </option>
-          <option value="Other" className="text-black">
-            Other
-          </option>
-        </select>
-        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-lime-400" />
-      </div>
+          <ChevronDown className="w-[17px] h-[17px] text-yellow-300/80" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="absolute z-50 w-full mt-2 rounded-2xl border border-lime-400/25 
+                       bg-gradient-to-b from-[#0F231D] via-[#152E27] to-[#183728] 
+                       shadow-[0_0_25px_rgba(255,255,150,0.25)] backdrop-blur-xl overflow-hidden"
+          >
+            {options.map((opt, i) => (
+              <button
+                type="button"
+                key={opt}
+                onClick={() => handleSelect(opt)}
+                className={`w-full text-left px-4 py-2.5 text-sm flex justify-between items-center
+                  ${
+                    value === opt
+                      ? "bg-gradient-to-r from-lime-400 via-yellow-300 to-lime-400 text-gray-900 font-semibold"
+                      : "text-lime-100 hover:bg-lime-400/10 hover:text-yellow-200"
+                  } ${
+                  i !== options.length - 1 ? "border-b border-lime-400/10" : ""
+                }`}
+              >
+                {opt}
+                {value === opt && (
+                  <span className="w-2 h-2 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(255,255,150,0.5)]" />
+                )}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
