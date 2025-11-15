@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/* ---------------------- USER ---------------------- */
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -15,6 +17,7 @@ model User {
   password     String
   role         Role     @default(Viewer)
   createdAt    DateTime @default(now())
+  emailVerified Boolean  @default(false)
 
   Profile     Profile?
   BoardMember BoardMember[]
@@ -26,8 +29,8 @@ model User {
   archivedBoards Board[] @relation("ArchivedBy")
   trashedBoards  Board[] @relation("TrashedBy")
   boardAudits    BoardAudit[] @relation("ActorAudits")
+  emailVerifications EmailVerification[]
 }
-
 
 enum Role {
   Admin
@@ -35,6 +38,8 @@ enum Role {
   Editor
   Viewer
 }
+
+/* ---------------------- PROFILE ---------------------- */
 
 model Profile {
   id          Int       @id @default(autoincrement())
@@ -45,7 +50,6 @@ model Profile {
   gender      Gender
   address     String?
   bio         String?
-  profilePic  String?
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -55,6 +59,8 @@ enum Gender {
   Female
   Other
 }
+
+/* ---------------------- BOARD ---------------------- */
 
 enum BoardStatus {
   active
@@ -66,20 +72,20 @@ model Board {
   id          Int       @id @default(autoincrement())
   title       String
   description String?
-  status      BoardStatus @default(active)   // active | archived | trashed
-  archivedAt  DateTime?                         // when archived
-  trashedAt   DateTime?                         // when moved to trash
+  status      BoardStatus @default(active)
+  archivedAt  DateTime?
+  trashedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   ownerId Int
   owner   User @relation(fields: [ownerId], references: [id])
 
-  // who archived / trashed (optional)
-  archivedById Int? 
+  archivedById Int?
   archivedBy   User? @relation("ArchivedBy", fields: [archivedById], references: [id])
-  trashedById  Int?
-  trashedBy    User? @relation("TrashedBy", fields: [trashedById], references: [id])
+
+  trashedById Int?
+  trashedBy   User? @relation("TrashedBy", fields: [trashedById], references: [id])
 
   members BoardMember[]
   invites Invite[]
@@ -93,6 +99,8 @@ model Board {
   @@index([trashedAt])
 }
 
+/* ---------------------- BOARD MEMBER ---------------------- */
+
 model BoardMember {
   id       Int      @id @default(autoincrement())
   boardId  Int
@@ -105,6 +113,8 @@ model BoardMember {
 
   @@unique([boardId, userId])
 }
+
+/* ---------------------- INVITES ---------------------- */
 
 model Invite {
   id          Int       @id @default(autoincrement())
@@ -153,16 +163,20 @@ enum InviteAction {
   PENDING
 }
 
+/* ---------------------- COLUMN ---------------------- */
+
 model Column {
   id        Int      @id @default(autoincrement())
   name      String
-  position  Int // Used to order columns (1=ToDo, 2=Doing, 3=Done)
+  position  Int
   boardId   Int
   board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  tasks     Task[] // A column contains multiple tasks
+  tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+/* ---------------------- TASK ---------------------- */
 
 model Task {
   id          Int      @id @default(autoincrement())
@@ -175,16 +189,15 @@ model Task {
   updatedAt   DateTime @updatedAt
 }
 
-/*
-  BoardAudit - records actions taken on boards (archive, restore, trash, permanent_delete, auto_delete, etc.)
-*/
+/* ---------------------- BOARD AUDIT ---------------------- */
+
 model BoardAudit {
   id        Int      @id @default(autoincrement())
   boardId   Int
-  actorId   Int?     // user who performed the action (nullable for system/cron auto-deletes)
-  action    String   // e.g. "archive", "restore", "trash", "permanent_delete", "auto_delete"
-  details   Json?    // optional JSON blob with reason, request metadata, etc.
-  ip        String?  
+  actorId   Int?
+  action    String
+  details   Json?
+  ip        String?
   userAgent String?
   createdAt DateTime @default(now())
 
@@ -193,4 +206,20 @@ model BoardAudit {
 
   @@index([boardId])
   @@index([actorId])
+}
+
+/* ---------------------- EMAIL VERIFICATION ---------------------- */
+
+model EmailVerification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  otpHash   String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([used])
 }

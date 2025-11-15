@@ -12,6 +12,7 @@ import NewBoard from "./pages/NewBoard";
 import ProfileCheck from "./pages/Profile/ProfileCheck";
 import ProfileMe from "./pages/Profile/ProfileMe";
 import ProfileCreate from "./pages/Profile/ProfileCreate";
+import ProfileEdit from "./pages/Profile/ProfileEdit";
 import BoardPage from "./pages/BoardPage";
 import TrashPage from "./pages/TrashPage";
 import BoardDetails from "./pages/BoardDetails";
@@ -69,6 +70,7 @@ const AnimatedRoutes = () => {
             <Route path="/profile" element={<ProfileCheck />} />
             <Route path="/profile/create" element={<ProfileCreate />} />
             <Route path="/profile/me" element={<ProfileMe />} />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/boards" element={<ViewBoards />} />
             <Route path="/newboard" element={<NewBoard />} />
             <Route path="/board/:boardId" element={<BoardPage />} />

@@ -1,12 +1,14 @@
 // routes/userRoute.js
 const express = require("express");
-const { registerUser, loginUser, verifyUser, logoutUser } = require("../controllers/userController");
+const { registerUser, loginUser, verifyUser, logoutUser, getMe, updateBasicInfo } = require("../controllers/userController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.get("/", (req, res) => res.send("Home"));
 router.post("/register", registerUser);
+router.get("/me", protect, getMe);
+router.put("/update-basic", protect, updateBasicInfo);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 

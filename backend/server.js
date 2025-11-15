@@ -26,6 +26,8 @@ const inviteHistoryRoute = require("./routes/inviteHistoryRoute");
 const columnRoutes = require("./routes/columnRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const testRoute = require("./routes/testRoute");
+const emailVerificationRoute = require("./routes/emailVerificationRoute");
+
 
 app.get("/", (req, res) => {
   res.send("API is running");
@@ -39,6 +41,8 @@ app.use("/api/invite-history", inviteHistoryRoute);
 app.use("/api/columns", columnRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/test", testRoute);
+app.use("/api/email", emailVerificationRoute);
+
 
 
 // ====== EXISTING CRON: Clean cancelled invites every hour ======

@@ -1,5 +1,5 @@
 // src/pages/Profile/ProfileCheck.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
@@ -8,17 +8,24 @@ const ProfileCheck = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Prevent multiple redirects caused by React strict mode
+  const redirected = useRef(false);
+
   useEffect(() => {
     const checkProfile = async () => {
+      if (redirected.current) return;
+
       try {
         const res = await api.get("/profile/me");
-        if (res.data) {
-          navigate("/profile/me");
-        } else {
-          navigate("/profile/create");
-        }
+
+        redirected.current = true;
+
+        if (res.data) navigate("/profile/me");
+        else navigate("/profile/create");
       } catch (err) {
-        if (err.response && err.response.status === 404) {
+        redirected.current = true;
+
+        if (err.response?.status === 404) {
           navigate("/profile/create");
         } else {
           console.error(err);

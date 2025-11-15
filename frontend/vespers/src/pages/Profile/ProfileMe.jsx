@@ -8,6 +8,8 @@ import {
   MapPin,
   User,
   LayoutDashboard,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
@@ -61,9 +63,84 @@ const CHIP_LAYOUT = [
   { top: "88%", left: "68%", label: "Nexus Beam" },
 ];
 
+/* -------------------------------------------------------
+   ⭐ OTP Modal Component
+-------------------------------------------------------- */
+function OtpModal({ open, onClose, onVerify }) {
+  const [otp, setOtp] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!open) return null;
+
+  const verifyHandler = async () => {
+    try {
+      setSending(true);
+      setError("");
+      await onVerify(otp);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Invalid OTP");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="w-[90%] max-w-sm rounded-2xl bg-[#0f1f1a] border border-lime-400/30 p-6 shadow-[0_0_40px_rgba(190,255,150,0.25)]"
+      >
+        <h2 className="text-xl font-bold text-lime-200">Verify Email</h2>
+        <p className="mt-1 text-sm text-lime-300/70">
+          Enter the 6-digit OTP sent to your email.
+        </p>
+
+        <input
+          type="text"
+          maxLength="6"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          className="w-full mt-4 px-3 py-2 rounded-xl bg-[#11221c] border border-lime-400/25 text-lime-200 outline-none"
+          placeholder="Enter OTP"
+        />
+
+        {error && (
+          <p className="text-red-400 text-sm mt-2">{error}</p>
+        )}
+
+        <div className="flex justify-end gap-3 mt-5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-lime-200"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={sending}
+            onClick={verifyHandler}
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 text-gray-900 font-semibold disabled:opacity-60"
+          >
+            {sending ? "Verifying..." : "Verify"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------- */
+
 export default function ProfileMe() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+
+  const [bioModalOpen, setBioModalOpen] = useState(false);   // ⭐ NEW
+
   const navigate = useNavigate();
 
   const mx = useMotionValue(0.5);
@@ -71,10 +148,19 @@ export default function ProfileMe() {
   const rotateX = useTransform(my, [0, 1], [8, -8]);
   const rotateY = useTransform(mx, [0, 1], [-8, 8]);
 
+  /* Helper: Trim bio to 15 words */
+  const getTrimmedBio = (bio) => {
+    if (!bio) return "";
+    const words = bio.trim().split(/\s+/);
+    if (words.length <= 15) return bio;
+    return words.slice(0, 15).join(" ") + " ...";
+  };
+
+  /* FETCH PROFILE */
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await api.get("/profile/me", { withCredentials: true });
+        const { data } = await api.get("/profile/me");
         setProfile(data);
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -103,8 +189,71 @@ export default function ProfileMe() {
     );
   }
 
+  const isVerified = profile.user?.emailVerified;
+  const email = profile.user?.email;
+  const role = profile.user?.role;
+
+  /* SEND OTP */
+  const sendOtp = async () => {
+    try {
+      setOtpSending(true);
+      await api.post("/email/send");
+      setOtpModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  /* VERIFY OTP */
+  const verifyOtp = async (otp) => {
+    await api.post("/email/verify", { otp });
+    setOtpModalOpen(false);
+
+    const { data } = await api.get("/profile/me");
+    setProfile(data);
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white flex flex-col justify-center items-center">
+
+      <OtpModal
+        open={otpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        onVerify={verifyOtp}
+      />
+
+      {/* ⭐ BIO MODAL */}
+{bioModalOpen && (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999]">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      className="w-[90%] max-w-lg rounded-2xl bg-[#0f1f1a] border border-lime-400/30 p-6 shadow-[0_0_40px_rgba(190,255,150,0.25)] text-lime-200"
+    >
+      <h2 className="text-xl font-bold mb-4 text-lime-100">Full Bio</h2>
+
+      {/* Bio text with custom scrollbar */}
+      <div
+        className="vespera-scroll max-h-[300px] overflow-y-auto pr-2 text-sm leading-relaxed text-lime-200/90"
+      >
+        {profile.bio}
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={() => setBioModalOpen(false)}
+          className="px-5 py-2 rounded-lg bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 text-gray-900 font-semibold hover:scale-105 transition"
+        >
+          Close
+        </button>
+      </div>
+    </motion.div>
+  </div>
+)}
+
 
       {/* Ambient Glows */}
       <motion.div className="absolute -top-24 -left-20 w-96 h-96 rounded-full bg-lime-400/15 blur-3xl" {...float(10, 14, 8)} />
@@ -121,7 +270,6 @@ export default function ProfileMe() {
           Nexus Identity
         </motion.h1>
 
-        {/* Scanning Beam */}
         <div className="absolute bottom-8 w-[68%] max-w-[880px] h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent rounded-full overflow-hidden">
           <motion.div
             className="h-full w-[18%] bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
@@ -138,6 +286,7 @@ export default function ProfileMe() {
 
       {/* Main Section */}
       <div className="w-[90%] max-w-6xl mt-2 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10">
+
         {/* Hologram */}
         <div className="flex items-center justify-center">
           <VesperaHologram />
@@ -169,14 +318,61 @@ export default function ProfileMe() {
           <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent">
             {profile.name}
           </h2>
-          <p className="text-lime-200/80 mt-1">{profile.email}</p>
-          <p className="text-yellow-200/80 text-sm mt-1">{profile.role || "User"}</p>
+
+          {/* Email */}
+          <p className="text-lime-200/80 mt-1">{email}</p>
+
+          {/* VERIFIED / NOT VERIFIED */}
+          <div className="mt-2 flex items-center gap-2">
+            {isVerified ? (
+              <div className="flex items-center gap-1 text-emerald-300 text-sm">
+                <CheckCircle size={16} />
+                Verified
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-yellow-300 text-sm">
+                <AlertCircle size={16} />
+                Not Verified
+              </div>
+            )}
+          </div>
+
+          {!isVerified && (
+            <button
+              disabled={otpSending}
+              onClick={sendOtp}
+              className="mt-2 rounded-xl px-3 py-1.5 text-sm bg-lime-400/20 border border-lime-400/40 hover:bg-lime-400/30 transition disabled:opacity-50"
+            >
+              {otpSending ? "Sending OTP..." : "Verify Email"}
+            </button>
+          )}
+
+          {/* Role */}
+          <p className="text-yellow-200/80 text-sm mt-1">{role || "User"}</p>
+
+          {/* ⭐ Bio with trim & modal trigger */}
           <p className="mt-3 text-sm text-lime-100/80 italic">
-            {profile.bio || "No bio added yet — tell us your story."}
+            {profile.bio ? (
+              <>
+                {getTrimmedBio(profile.bio)}
+                {" "}
+                {profile.bio.trim().split(/\s+/).length > 15 && (
+                  <button
+                    onClick={() => setBioModalOpen(true)}
+                    className="text-lime-300 underline hover:text-yellow-300"
+                  >
+                    Read more
+                  </button>
+                )}
+              </>
+            ) : (
+              "No bio added yet — tell us your story."
+            )}
           </p>
 
           <div className="my-6 h-px bg-gradient-to-r from-transparent via-lime-400/40 to-transparent" />
 
+          {/* Info Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <InfoCard icon={<Phone size={16} />} label="Phone" value={profile.phoneNumber || "Not added"} />
             <InfoCard icon={<Calendar size={16} />} label="Date of Birth" value={profile.dob ? new Date(profile.dob).toLocaleDateString() : "Not set"} />

@@ -7,10 +7,10 @@ import {
   Phone,
   MapPin,
   Quote,
-  Image as ImageIcon,
   Loader2,
   ChevronDown,
-} from "lucide-react";
+  Mail,
+} from "lucide-react"; // Removed ImageIcon import
 import api from "../../api/axios";
 import heroImg from "../../assets/vespera-hero.png";
 import GlassDatePicker from "../../components/inviteAudits/GlassDatePicker";
@@ -38,27 +38,57 @@ export default function Profile() {
   const [form, setForm] = useState({
     name: "",
     phoneNumber: "",
+    email: "",
     dob: "",
     gender: "",
     address: "",
     bio: "",
-    profilePic: "",
-  });
+  }); // ❌ Removed profilePic
+
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
 
+  /* Fetch user info (name, phone, email) */
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      try {
+        const { data } = await api.get("/user/me");
+        setForm((p) => ({
+          ...p,
+          name: data.name || "",
+          phoneNumber: data.phonenumber || "",
+          email: data.email || "",
+        }));
+      } catch (err) {
+        console.error("Failed to load user data", err);
+      }
+    };
+    loadUserInfo();
+  }, []);
+
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
+  /* Submit Profile */
   const onSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
+
     setErr("");
     setOk("");
     setLoading(true);
+
     try {
-      await api.post("/profile/create", form, { withCredentials: true });
+      const body = {
+        dob: form.dob,
+        gender: form.gender,
+        address: form.address,
+        bio: form.bio,
+      }; // ❌ Removed profilePic
+
+      await api.post("/profile/create", body);
+
       setOk("Profile created successfully! 🌿");
       setTimeout(() => navigate("/profile/me"), 1200);
     } catch (error) {
@@ -70,6 +100,7 @@ export default function Profile() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white">
+      
       {/* Ambient glows */}
       <motion.div
         className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-lime-400/15 blur-3xl"
@@ -80,6 +111,8 @@ export default function Profile() {
         animate={{ y: [0, 18, 0], x: [0, -10, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
+
+      {/* Grid */}
       <div className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:22px_22px] opacity-20" />
 
       {/* Floating particles */}
@@ -107,22 +140,21 @@ export default function Profile() {
         ))}
       </div>
 
-      {/* Top tag */}
+      {/* Top Tag */}
       <div className="absolute top-5 left-1/2 -translate-x-1/2">
         <div className="flex items-center gap-2 rounded-full border border-lime-400/20 bg-white/5 px-4 py-2 backdrop-blur-xl">
           <span className="h-2 w-2 rounded-full bg-lime-400" />
-          <span className="text-xs text-lime-200/90">
-            Vespera • Profile Setup
-          </span>
+          <span className="text-xs text-lime-200/90">Vespera • Profile Setup</span>
         </div>
       </div>
 
       {/* Layout */}
       <div className="h-full w-full px-4 md:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 place-items-center">
+        
         {/* LEFT: Visual Hero */}
         <LeftVisualHero />
 
-        {/* RIGHT: Form */}
+        {/* RIGHT: Form Box */}
         <motion.div
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -136,6 +168,7 @@ export default function Profile() {
           <div className="absolute left-0 right-0 top-0 mx-auto h-12 rounded-t-3xl bg-gradient-to-b from-lime-400/25 to-transparent" />
 
           <div className="relative z-10 h-full p-6 sm:p-8 flex flex-col">
+
             <Header navigate={navigate} />
 
             {err && (
@@ -143,47 +176,65 @@ export default function Profile() {
                 {err}
               </div>
             )}
+
             {ok && (
               <div className="mb-3 rounded-xl border border-lime-400/30 bg-lime-500/10 px-3 py-2 text-sm text-lime-200">
                 {ok}
               </div>
             )}
 
-            {/* ✅ Added prevention for unintended Enter submits */}
+            {/* Form */}
             <form
               onSubmit={onSubmit}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
-                  // Allow Enter only in textareas
                   e.preventDefault();
                 }
               }}
               className="grid grid-cols-1 sm:grid-cols-2 gap-3 select-none"
             >
+              {/* EMAIL */}
+              <Field
+                icon={<Mail className="w-4 h-4" />}
+                label="Email"
+                value={form.email}
+                name="email"
+                readOnly
+                disabled
+                className="sm:col-span-2"
+              />
+
+              {/* NAME */}
               <Field
                 icon={<User className="w-4 h-4" />}
                 label="Full Name"
                 name="name"
                 value={form.name}
-                onChange={onChange}
-                placeholder="Sam"
-                required
+                readOnly
+                disabled
               />
+
+              {/* PHONE */}
               <Field
                 icon={<Phone className="w-4 h-4" />}
                 label="Phone Number"
                 name="phoneNumber"
                 value={form.phoneNumber}
-                onChange={onChange}
-                placeholder="+91 xxxxxxxxxx"
-                required
+                readOnly
+                disabled
               />
+
+              {/* DOB */}
               <GlassDatePickerField
                 label="Date of Birth"
                 value={form.dob}
                 onChange={onChange}
               />
+
+              {/* GENDER */}
               <GenderSelect value={form.gender} onChange={onChange} />
+
+              {/* ADDRESS */}
               <Field
                 icon={<MapPin className="w-4 h-4" />}
                 label="Address"
@@ -193,6 +244,8 @@ export default function Profile() {
                 placeholder="City, Country"
                 className="sm:col-span-2"
               />
+
+              {/* BIO */}
               <TextArea
                 icon={<Quote className="w-4 h-4" />}
                 label="Bio"
@@ -203,15 +256,8 @@ export default function Profile() {
                 rows={2}
                 className="sm:col-span-2"
               />
-              <Field
-                icon={<ImageIcon className="w-4 h-4" />}
-                label="Profile Picture URL (optional)"
-                name="profilePic"
-                value={form.profilePic}
-                onChange={onChange}
-                placeholder="https://…/avatar.png"
-                className="sm:col-span-2"
-              />
+
+              {/* ❌ ProfilePic Removed */}
 
               <div className="sm:col-span-2 mt-1 flex items-center gap-3">
                 <button
@@ -235,6 +281,7 @@ export default function Profile() {
             <div className="mt-auto h-10 w-full">
               <div className="h-px w-full bg-gradient-to-r from-transparent via-lime-400/40 to-transparent" />
             </div>
+
           </div>
         </motion.div>
       </div>
@@ -260,10 +307,7 @@ function Header({ navigate }) {
         onClick={() => navigate("/dashboard")}
         className="group inline-flex items-center gap-2 rounded-xl border border-lime-400/25 bg-white/5 px-3 py-2 text-xs text-lime-100 hover:border-lime-400/40 hover:bg-lime-400/10 transition"
       >
-        <LayoutDashboard
-          size={16}
-          className="group-hover:rotate-6 transition"
-        />
+        <LayoutDashboard size={16} className="group-hover:rotate-6 transition" />
         Dashboard
       </button>
     </header>
@@ -327,7 +371,7 @@ function LeftVisualHero() {
         </div>
       </motion.div>
 
-      {/* ✅ Restored Floating Tech Chips */}
+      {/* Tech Chips */}
       <motion.div className="absolute -left-6 bottom-20">
         <TechChip label="HTML" />
       </motion.div>
@@ -365,7 +409,7 @@ function Field({ icon, label, className = "", ...props }) {
           className="w-full rounded-xl border border-lime-400/25 bg-[#11221c] pl-9 pr-3 py-2.5 text-sm 
                      text-lime-100 placeholder-lime-200/40 outline-none 
                      focus:ring-2 focus:ring-lime-400/40 hover:bg-[#153029] 
-                     transition-all duration-200"
+                     transition-all duration-200 disabled:opacity-60"
         />
       </div>
     </div>
@@ -423,10 +467,7 @@ function GenderSelect({ value, onChange }) {
                    focus:ring-2 focus:ring-lime-400/40 transition-all duration-200 h-[42px]"
       >
         <span className="truncate">{value || "Select"}</span>
-        <motion.div
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.25 }}
-        >
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }}>
           <ChevronDown className="w-[17px] h-[17px] text-yellow-300/80" />
         </motion.div>
       </button>
@@ -452,9 +493,7 @@ function GenderSelect({ value, onChange }) {
                     value === opt
                       ? "bg-gradient-to-r from-lime-400 via-yellow-300 to-lime-400 text-gray-900 font-semibold"
                       : "text-lime-100 hover:bg-lime-400/10 hover:text-yellow-200"
-                  } ${
-                  i !== options.length - 1 ? "border-b border-lime-400/10" : ""
-                }`}
+                  } ${i !== options.length - 1 ? "border-b border-lime-400/10" : ""}`}
               >
                 {opt}
                 {value === opt && (

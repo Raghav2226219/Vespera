@@ -75,3 +75,33 @@ input:-webkit-autofill:focus {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+
+/* ===== Vespera Scrollbar (Local Component) ===== */
+.vespera-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vespera-scroll::-webkit-scrollbar-track {
+  background: rgba(10, 26, 22, 0.3);
+  border-radius: 8px;
+}
+
+.vespera-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(190, 255, 150, 0.65),
+    rgba(255, 255, 150, 0.55)
+  );
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(190, 255, 150, 0.4);
+}
+
+.vespera-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 150, 0.85),
+    rgba(190, 255, 150, 0.75)
+  );
+  box-shadow: 0 0 16px rgba(255, 255, 150, 0.6);
+}
