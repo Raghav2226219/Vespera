@@ -1,38 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import api from "../../api/axios";
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.8, ease: "easeInOut" },
-  },
-};
-
-const floatAnim = {
-  animate: { y: [0, -10, 0], rotate: [0, 1, -1, 0] },
-  transition: {
-    duration: 10,
-    repeat: Infinity,
-    repeatType: "mirror",
-    ease: "easeInOut",
-  },
-};
-
-const shimmerAnim = {
-  initial: { backgroundPosition: "200% 0" },
-  animate: { backgroundPosition: "-200% 0" },
-  transition: { duration: 3, repeat: Infinity, ease: "linear" },
-};
+import VesperaHologram from "../../components/VesperaHologram";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
@@ -50,163 +27,166 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 relative overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white overflow-hidden">
+      {/* 🌌 Ambient Light Orbs */}
       <motion.div
         animate={{ x: [0, 25, -25, 0], y: [0, -25, 25, 0] }}
-        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -left-20 -top-16 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl"
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-0 top-0 w-[22rem] h-[22rem] rounded-full bg-lime-400/15 blur-3xl"
       />
       <motion.div
         animate={{ x: [0, -25, 25, 0], y: [0, 25, -25, 0] }}
         transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -right-24 bottom-10 w-96 h-96 rounded-full bg-cyan-400/10 blur-3xl"
+        className="absolute right-0 bottom-0 w-[26rem] h-[26rem] rounded-full bg-yellow-400/10 blur-3xl"
       />
+      <div className="absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:22px_22px] opacity-20 pointer-events-none" />
+
+      {/* ✨ Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(35)].map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute block h-[3px] w-[3px] rounded-full"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              backgroundColor:
+                Math.random() > 0.5 ? "rgba(190,255,150,0.9)" : "rgba(255,255,150,0.9)",
+              filter: "drop-shadow(0 0 10px rgba(200,255,180,0.9))",
+            }}
+            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.4, 0.8] }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* 🔮 Central Login Container */}
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="relative z-10 w-full max-w-6xl mx-4 md:mx-8 rounded-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="relative z-10 w-[90%] max-w-md flex flex-col items-center text-center space-y-8 overflow-hidden"
       >
-        <div className="flex flex-col md:flex-row bg-[rgba(255,255,255,0.05)] backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-700">
-          <div className="w-full md:w-1/2 p-6 md:p-10 lg:p-12 flex flex-col justify-center">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-300 flex items-center justify-center border border-white/10 shadow-sm">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-white/90"
-                >
-                  <path
-                    d="M4 7h16M4 12h16M4 17h16"
-                    stroke="rgba(255,255,255,0.9)"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <span className="text-sm text-white/70 font-medium">Vespera</span>
+        {/* 🧩 Vespera Logo */}
+        <div className="w-40">
+          <VesperaHologram />
+        </div>
+
+        {/* Title + Scanning Line */}
+        <div className="relative w-full flex flex-col items-center overflow-hidden">
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="text-4xl font-extrabold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(190,255,150,0.5)]"
+          >
+            Vespera Access Portal
+          </motion.h1>
+
+          <motion.div
+            className="absolute bottom-[-10px] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent rounded-full overflow-hidden"
+            animate={{ opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <motion.div
+              className="h-full w-[18%] bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
+              animate={{ x: ["-10%", "100%"] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+        </div>
+
+        {/* 🧬 Login Form */}
+        <motion.form
+          onSubmit={handleSubmit}
+          className="relative bg-[rgba(10,26,22,0.55)] border border-lime-400/25 backdrop-blur-2xl rounded-3xl shadow-[0_0_50px_rgba(190,255,150,0.2)] px-8 py-8 w-full text-left space-y-5"
+          whileHover={{
+            boxShadow:
+              "0 0 55px rgba(255,255,150,0.18), inset 0 0 10px rgba(190,255,150,0.2)",
+          }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-rose-200 bg-rose-700/30 px-3 py-2 rounded-lg text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+
+          {/* Email Field */}
+          <div>
+            <label className="text-xs text-white/60">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 w-full px-4 py-3 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:shadow-[0_0_10px_rgba(190,255,150,0.3)] transition-all"
+              placeholder="you@vespera.com"
+            />
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-white/60">Password</label>
+              <Link
+                to="#"
+                className="text-xs text-yellow-200/80 hover:text-yellow-100"
+              >
+                Forgot Password?
+              </Link>
             </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12, duration: 0.7, ease: "easeOut" }}
-              className="text-3xl sm:text-4xl font-playfair text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-amber-200 to-white font-extrabold tracking-tight"
-            >
-              Vespera Ventures
-            </motion.h1>
-
-            <p className="mt-2 text-sm md:text-base text-emerald-200/70 max-w-[38ch]">
-              A New Beginning — sign in to continue to your workspace.
-            </p>
-
-            <motion.form
-              onSubmit={handleSubmit}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-              className="mt-6 space-y-4 w-full"
-            >
-              <div className="h-10">
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    role="alert"
-                    className="text-sm text-rose-200 bg-rose-700/30 px-3 py-2 rounded-lg"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-              </div>
-
-              <label className="block">
-                <span className="text-xs text-white/60">Email</span>
-                <input
-                  aria-label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1 w-full px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all"
-                  placeholder="you@company.com"
-                />
-              </label>
-
-              <label className="block">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/60">Password</span>
-                  <button
-                    type="button"
-                    className="text-xs text-white/40 hover:text-white/70"
-                  >
-                    Forgot?
-                  </button>
-                </div>
-                <input
-                  aria-label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1 w-full px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all"
-                  placeholder="••••••••"
-                />
-              </label>
-
-              <motion.button
-                whileHover={{ scale: 1.04, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                initial="initial"
-                animate="animate"
-                transition={shimmerAnim.transition}
-                variants={shimmerAnim}
-                type="submit"
-                className="relative w-full mt-1 inline-flex items-center justify-center gap-2 rounded-xl py-3 text-gray-900 font-semibold shadow-lg overflow-hidden
-                  bg-[linear-gradient(120deg,#34d399,#06b6d4,#34d399)] bg-[length:200%_100%]"
+            <div className="relative mt-1">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:shadow-[0_0_10px_rgba(190,255,150,0.3)] transition-all"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-lime-200/70 hover:text-yellow-100 transition-colors"
               >
-                Sign In
-              </motion.button>
-            </motion.form>
-
-            <p className="mt-6 text-sm text-white/60">
-              Don’t have an account?{" "}
-              <Link
-                to="/register"
-                className="text-emerald-300 font-semibold hover:underline"
-              >
-                Register
-              </Link>
-            </p>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
-          <div className="w-full md:w-1/2 relative hidden md:flex items-center justify-center p-8 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent)]">
-            <div className="absolute inset-4 rounded-xl bg-[rgba(255,255,255,0.02)] border border-white/6 backdrop-blur-sm" />
-            <motion.div
-              className="relative z-10 w-80 h-80 rounded-2xl flex items-center justify-center"
-              animate={floatAnim.animate}
-              transition={floatAnim.transition}
-            >
-              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-emerald-500/10 to-cyan-400/6 flex items-center justify-center border border-white/8 shadow-lg">
-                <motion.img
-                  src="https://cdn-icons-png.flaticon.com/512/3448/3448616.png"
-                  alt="kanban illustration"
-                  className="w-40 h-40 object-contain filter drop-shadow-[0_10px_40px_rgba(6,95,70,0.18)]"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-              </div>
-            </motion.div>
-            <div className="absolute -bottom-12 right-8 w-44 h-44 rounded-full bg-emerald-400/8 blur-3xl" />
-          </div>
-        </div>
+          {/* Submit Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="w-full mt-4 py-3 rounded-xl text-gray-900 font-semibold 
+                       bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 
+                       hover:shadow-[0_0_35px_rgba(190,255,150,0.4)]
+                       transition-all duration-300"
+            type="submit"
+          >
+            Access System
+          </motion.button>
+        </motion.form>
+
+        <p className="text-sm text-white/60">
+          New to the system?{" "}
+          <Link
+            to="/register"
+            className="text-lime-300 font-semibold hover:underline"
+          >
+            Register here
+          </Link>
+        </p>
       </motion.div>
     </div>
   );

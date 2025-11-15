@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\backend\\prisma",
+    "\\frontend",
+    "\\frontend\\vespers"
+  ],
+  "SelectedNode": "\\backend\\prisma\\schema.prisma",
+  "PreviewInSolutionExplorer": false
+}

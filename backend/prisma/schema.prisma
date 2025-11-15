@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/* ---------------------- USER ---------------------- */
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -15,14 +17,19 @@ model User {
   password     String
   role         Role     @default(Viewer)
   createdAt    DateTime @default(now())
-  refreshToken String?
+  emailVerified Boolean  @default(false)
 
-  Profile Profile?
+  Profile     Profile?
   BoardMember BoardMember[]
-  Board Board[]
+  Board       Board[]
 
-  inviterLogs InviteLog[] @relation("InviterLogs")
-  acceptedLogs InviteLog[] @relation("AcceptedLogs")
+  inviterLogs   InviteLog[] @relation("InviterLogs")
+  acceptedLogs  InviteLog[] @relation("AcceptedLogs")
+
+  archivedBoards Board[] @relation("ArchivedBy")
+  trashedBoards  Board[] @relation("TrashedBy")
+  boardAudits    BoardAudit[] @relation("ActorAudits")
+  emailVerifications EmailVerification[]
 }
 
 enum Role {
@@ -32,100 +39,187 @@ enum Role {
   Viewer
 }
 
-model Profile{
-  id Int @id @default(autoincrement())
-  userId Int @unique
-  name String
+/* ---------------------- PROFILE ---------------------- */
+
+model Profile {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @unique
+  name        String
   phoneNumber String
-  dob DateTime?
-  gender Gender
-  address String?
-  bio String?
-  profilePic String?
+  dob         DateTime?
+  gender      Gender
+  address     String?
+  bio         String?
 
   user User @relation(fields: [userId], references: [id])
 }
 
-enum Gender{
+enum Gender {
   Male
   Female
   Other
 }
 
+/* ---------------------- BOARD ---------------------- */
+
+enum BoardStatus {
+  active
+  archived
+  trashed
+}
+
 model Board {
-  id Int @id @default(autoincrement())
-  title String
+  id          Int       @id @default(autoincrement())
+  title       String
   description String?
-  isArchived Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status      BoardStatus @default(active)
+  archivedAt  DateTime?
+  trashedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   ownerId Int
-  owner User @relation(fields: [ownerId], references: [id])
+  owner   User @relation(fields: [ownerId], references: [id])
+
+  archivedById Int?
+  archivedBy   User? @relation("ArchivedBy", fields: [archivedById], references: [id])
+
+  trashedById Int?
+  trashedBy   User? @relation("TrashedBy", fields: [trashedById], references: [id])
 
   members BoardMember[]
   invites Invite[]
-  logs InviteLog[]
+  logs    InviteLog[]
+  columns Column[]
+
+  audits  BoardAudit[]  @relation("BoardAudits")
 
   @@unique([ownerId, title])
+  @@index([status])
+  @@index([trashedAt])
 }
 
-model BoardMember{
-  id Int @id @default(autoincrement())
-  boardId Int
-  userId Int
-  role Role @default(Viewer)
+/* ---------------------- BOARD MEMBER ---------------------- */
+
+model BoardMember {
+  id       Int      @id @default(autoincrement())
+  boardId  Int
+  userId   Int
+  role     Role     @default(Viewer)
   joinedAt DateTime @default(now())
 
   board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
 
   @@unique([boardId, userId])
 }
 
+/* ---------------------- INVITES ---------------------- */
+
 model Invite {
-  id Int @id @default(autoincrement())
-  boardId Int
-  email String
-  role Role @default(Viewer)
-  tokenHash String @unique
-  expiresAt DateTime
-  used Boolean @default(false)
-  createdAt DateTime @default(now())
-  cancelled Boolean @default(false)
+  id          Int       @id @default(autoincrement())
+  boardId     Int
+  email       String
+  role        Role      @default(Viewer)
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  used        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  cancelled   Boolean   @default(false)
   cancelledAt DateTime?
 
-  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  logs InviteLog[]
+  board Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  logs  InviteLog[]
 
   @@index([boardId])
   @@index([email])
 }
 
 model InviteLog {
-  id Int @id @default(autoincrement())
-  boardId Int
-  inviteId Int
-  inviterId Int
+  id           Int          @id @default(autoincrement())
+  boardId      Int
+  inviteId     Int
+  inviterId    Int
   acceptedById Int?
   inviteeEmail String
-  action InviteAction
-  createdAt DateTime @default(now())
+  action       InviteAction
+  createdAt    DateTime     @default(now())
 
-  board Board @relation(fields: [boardId], references: [id])
-  invite Invite @relation(fields: [inviteId], references: [id])
-  inviter User @relation("InviterLogs",fields: [inviterId], references: [id])
-  acceptedBy User? @relation("AcceptedLogs", fields: [acceptedById], references: [id])
+  board      Board  @relation(fields: [boardId], references: [id])
+  invite     Invite @relation(fields: [inviteId], references: [id])
+  inviter    User   @relation("InviterLogs", fields: [inviterId], references: [id])
+  acceptedBy User?  @relation("AcceptedLogs", fields: [acceptedById], references: [id])
 
   @@index([boardId])
   @@index([inviterId])
   @@index([acceptedById])
 }
 
-enum InviteAction{
+enum InviteAction {
   SENT
   ACCEPTED
   CANCELLED
   SUSPICIOUS
   PENDING
+}
+
+/* ---------------------- COLUMN ---------------------- */
+
+model Column {
+  id        Int      @id @default(autoincrement())
+  name      String
+  position  Int
+  boardId   Int
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/* ---------------------- TASK ---------------------- */
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  position    Int
+  columnId    Int
+  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/* ---------------------- BOARD AUDIT ---------------------- */
+
+model BoardAudit {
+  id        Int      @id @default(autoincrement())
+  boardId   Int
+  actorId   Int?
+  action    String
+  details   Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  board   Board @relation("BoardAudits", fields: [boardId], references: [id], onDelete: Cascade)
+  actor   User? @relation("ActorAudits", fields: [actorId], references: [id])
+
+  @@index([boardId])
+  @@index([actorId])
+}
+
+/* ---------------------- EMAIL VERIFICATION ---------------------- */
+
+model EmailVerification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  otpHash   String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([used])
 }

@@ -2,3 +2,106 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* === Custom Scrollbar (matches Column.jsx) === */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgba(16, 185, 129, 0.5), rgba(6, 182, 212, 0.4));
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(16, 185, 129, 0.8), rgba(6, 182, 212, 0.7));
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+/* Firefox Support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #34d399 rgba(20, 83, 45, 0.15);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  box-shadow: 0 0 0px 1000px rgba(23, 37, 42, 0.3) inset !important;
+  -webkit-text-fill-color: #a7f3d0 !important; /* emerald-300 */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+
+.react-calendar {
+  background: rgba(10, 30, 25, 0.8) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+  color: #d1fae5 !important;
+  font-family: "Inter", sans-serif;
+}
+
+.react-calendar__tile {
+  background: transparent !important;
+  color: #a7f3d0 !important;
+  border-radius: 0.6rem !important;
+  transition: all 0.2s ease;
+}
+.react-calendar__tile--now {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #6ee7b7 !important;
+}
+.react-calendar__tile--active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(34, 211, 238, 0.4)) !important;
+  color: white !important;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+}
+.react-calendar__tile:hover {
+  background: rgba(16, 185, 129, 0.2) !important;
+}
+.react-calendar__navigation button {
+  color: #6ee7b7 !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Hide scrollbars globally but allow scrolling if needed */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+
+/* ===== Vespera Scrollbar (Local Component) ===== */
+.vespera-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vespera-scroll::-webkit-scrollbar-track {
+  background: rgba(10, 26, 22, 0.3);
+  border-radius: 8px;
+}
+
+.vespera-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(190, 255, 150, 0.65),
+    rgba(255, 255, 150, 0.55)
+  );
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(190, 255, 150, 0.4);
+}
+
+.vespera-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 150, 0.85),
+    rgba(190, 255, 150, 0.75)
+  );
+  box-shadow: 0 0 16px rgba(255, 255, 150, 0.6);
+}
