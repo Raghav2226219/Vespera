@@ -19,6 +19,7 @@ import BoardDetails from "./pages/BoardDetails";
 import InviteMembers from "./pages/InviteMembers";
 import ArchivePage from "./pages/ArchivePage";
 import InviteAuditsAllPage from "./pages/InviteAuditsAllPage";
+import BoardAuditsPage from "./pages/BoardAuditsPage";
 import AcceptInvitePage from "./pages/AcceptInvitePage";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -79,6 +80,7 @@ const AnimatedRoutes = () => {
             <Route path="/invite" element={<InviteMembers />} />
             <Route path="/archive" element={<ArchivePage />} />
             <Route path="/invite-audits" element={<InviteAuditsAllPage />} />
+            <Route path="/board-audits" element={<BoardAuditsPage />} />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
           </Routes>

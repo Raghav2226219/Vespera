@@ -89,6 +89,16 @@ const createBoard = async (req, res) => {
       include: { columns: true },
     });
 
+    // 📝 Audit Log: Create Board
+    await prisma.boardAudit.create({
+      data: {
+        boardId: board.id,
+        actorId: userId,
+        action: "created",
+        details: { message: `Board "${title}" created.` },
+      },
+    });
+
     res
       .status(201)
       .json({ message: "Board created successfully.", board: fullBoard });
@@ -121,6 +131,16 @@ const updateBoard = async (req, res) => {
       where: { id: boardId },
       data: { title, description },
       select: { id: true, title: true, description: true },
+    });
+
+    // 📝 Audit Log: Update Board
+    await prisma.boardAudit.create({
+      data: {
+        boardId,
+        actorId: userId,
+        action: "updated",
+        details: { message: `Board "${title}" updated.` },
+      },
     });
 
     res.json(updatedBoard);
