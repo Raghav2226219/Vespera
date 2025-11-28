@@ -27,6 +27,7 @@ const columnRoutes = require("./routes/columnRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const testRoute = require("./routes/testRoute");
 const emailVerificationRoute = require("./routes/emailVerificationRoute");
+const taskMentionRoute = require("./routes/taskMentionRoute");
 
 
 app.get("/", (req, res) => {
@@ -42,6 +43,7 @@ app.use("/api/columns", columnRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/test", testRoute);
 app.use("/api/email", emailVerificationRoute);
+app.use("/api/task-mentions", taskMentionRoute);
 
 
 

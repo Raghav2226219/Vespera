@@ -22,6 +22,7 @@ const BoardPage = () => {
   const fetchBoard = useCallback(async () => {
     try {
       const res = await api.get(`/board/${boardId}`);
+      console.log("Fetched board data:", res.data);
       setBoard(res.data);
     } catch (err) {
       console.error("Error fetching board details:", err);
@@ -219,6 +220,7 @@ const BoardPage = () => {
                   boardId={boardId}
                   onTaskDelete={handleTaskDelete}
                   onTaskUpdate={handleTaskUpdate}
+                  boardMembers={board?.members || []}
                 />
               </div>
             ))

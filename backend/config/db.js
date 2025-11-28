@@ -1,6 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
-// This imports the auto-generated Prisma Client
-const prisma = new PrismaClient();
-// Creates a single Prisma instance to talk to your PostgreSQL
+const { Pool } = require("pg");
+const { PrismaPg } = require("@prisma/adapter-pg");
+
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 module.exports = prisma;
-// reuse the same instance across your controllers instead of creating new ones every time

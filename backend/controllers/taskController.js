@@ -47,17 +47,47 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description } = req.body;
+    console.log(`Updating task ${id}. Body:`, req.body);
+    const { title, description, priority, dueDate } = req.body;
+
+    let updateData = { title, description, priority };
+    
+    // Only add dueDate to updateData if it's provided (to avoid overwriting with undefined if not sent)
+    // But wait, if I want to clear it? The user might send null. 
+    // For now, let's assume we are setting it.
+    if (dueDate !== undefined) {
+        updateData.dueDate = dueDate ? new Date(dueDate) : null; // Ensure it's a Date object or null
+    }
+
+    // Auto-update priority based on days remaining
+    if (dueDate) {
+        const due = new Date(dueDate);
+        const now = new Date();
+        const diffInMs = due - now;
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+        if (diffInDays <= 5) {
+            updateData.priority = "HIGH";
+        } else if (diffInDays <= 15) {
+            updateData.priority = "MEDIUM";
+        } else {
+            updateData.priority = "LOW";
+        }
+        console.log(`Auto-setting priority to ${updateData.priority} (Days left: ${diffInDays.toFixed(1)})`);
+    }
+
+    console.log("Update data prepared:", updateData);
 
     const updatedTask = await prisma.task.update({
       where: { id: parseInt(id) },
-      data: { title, description },
+      data: updateData,
     });
 
+    console.log("Task updated successfully:", updatedTask);
     res.json(updatedTask);
   } catch (err) {
     console.error("Error updating task:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 

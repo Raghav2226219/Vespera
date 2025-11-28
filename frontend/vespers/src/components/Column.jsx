@@ -2,7 +2,7 @@ import React from "react";
 import TaskCard from "./TaskCard";
 import { Droppable } from "@hello-pangea/dnd";
 
-const Column = ({ column, boardId, onTaskDelete, onTaskUpdate }) => {
+const Column = ({ column, boardId, onTaskDelete, onTaskUpdate, boardMembers }) => {
   const handleDeleteTask = (taskId) => {
     console.log("Column: Deleting task", taskId, "from column", column.id);
     if (onTaskDelete) onTaskDelete(taskId, column.id);
@@ -58,6 +58,7 @@ const Column = ({ column, boardId, onTaskDelete, onTaskUpdate }) => {
                     index={index}
                     onDelete={(taskId) => handleDeleteTask(taskId)}
                     onUpdate={(updatedTask) => handleUpdateTask(updatedTask)}
+                    boardMembers={boardMembers}
                   />
                 ))
             ) : (

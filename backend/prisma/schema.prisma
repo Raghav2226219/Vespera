@@ -4,32 +4,34 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-/* ---------------------- USER ---------------------- */
+/**
+ * ---------------------- USER ----------------------
+ */
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  name         String
-  phonenumber  String
-  password     String
-  role         Role     @default(Viewer)
-  createdAt    DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  name          String
+  phonenumber   String
+  password      String
+  role          Role     @default(Viewer)
+  createdAt     DateTime @default(now())
   emailVerified Boolean  @default(false)
 
   Profile     Profile?
   BoardMember BoardMember[]
   Board       Board[]
 
-  inviterLogs   InviteLog[] @relation("InviterLogs")
-  acceptedLogs  InviteLog[] @relation("AcceptedLogs")
+  inviterLogs  InviteLog[] @relation("InviterLogs")
+  acceptedLogs InviteLog[] @relation("AcceptedLogs")
 
-  archivedBoards Board[] @relation("ArchivedBy")
-  trashedBoards  Board[] @relation("TrashedBy")
-  boardAudits    BoardAudit[] @relation("ActorAudits")
+  archivedBoards     Board[]             @relation("ArchivedBy")
+  trashedBoards      Board[]             @relation("TrashedBy")
+  boardAudits        BoardAudit[]        @relation("ActorAudits")
   emailVerifications EmailVerification[]
+  taskMentions       TaskMention[]
 }
 
 enum Role {
@@ -39,7 +41,9 @@ enum Role {
   Viewer
 }
 
-/* ---------------------- PROFILE ---------------------- */
+/**
+ * ---------------------- PROFILE ----------------------
+ */
 
 model Profile {
   id          Int       @id @default(autoincrement())
@@ -60,7 +64,9 @@ enum Gender {
   Other
 }
 
-/* ---------------------- BOARD ---------------------- */
+/**
+ * ---------------------- BOARD ----------------------
+ */
 
 enum BoardStatus {
   active
@@ -69,14 +75,14 @@ enum BoardStatus {
 }
 
 model Board {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   title       String
   description String?
   status      BoardStatus @default(active)
   archivedAt  DateTime?
   trashedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   ownerId Int
   owner   User @relation(fields: [ownerId], references: [id])
@@ -92,14 +98,16 @@ model Board {
   logs    InviteLog[]
   columns Column[]
 
-  audits  BoardAudit[]  @relation("BoardAudits")
+  audits BoardAudit[] @relation("BoardAudits")
 
   @@unique([ownerId, title])
   @@index([status])
   @@index([trashedAt])
 }
 
-/* ---------------------- BOARD MEMBER ---------------------- */
+/**
+ * ---------------------- BOARD MEMBER ----------------------
+ */
 
 model BoardMember {
   id       Int      @id @default(autoincrement())
@@ -114,7 +122,9 @@ model BoardMember {
   @@unique([boardId, userId])
 }
 
-/* ---------------------- INVITES ---------------------- */
+/**
+ * ---------------------- INVITES ----------------------
+ */
 
 model Invite {
   id          Int       @id @default(autoincrement())
@@ -163,7 +173,9 @@ enum InviteAction {
   PENDING
 }
 
-/* ---------------------- COLUMN ---------------------- */
+/**
+ * ---------------------- COLUMN ----------------------
+ */
 
 model Column {
   id        Int      @id @default(autoincrement())
@@ -176,20 +188,56 @@ model Column {
   updatedAt DateTime @updatedAt
 }
 
-/* ---------------------- TASK ---------------------- */
+/**
+ * ---------------------- TASK PRIORITY ENUM ----------------------
+ */
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/**
+ * ---------------------- TASK ----------------------
+ */
 
 model Task {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
   description String?
   position    Int
   columnId    Int
-  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  column      Column  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  dueDate  DateTime?
+  priority TaskPriority @default(MEDIUM)
+
+  mentions TaskMention[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-/* ---------------------- BOARD AUDIT ---------------------- */
+/**
+ * ---------------------- TASK MENTION ----------------------
+ */
+
+model TaskMention {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+/**
+ * ---------------------- BOARD AUDIT ----------------------
+ */
 
 model BoardAudit {
   id        Int      @id @default(autoincrement())
@@ -201,14 +249,16 @@ model BoardAudit {
   userAgent String?
   createdAt DateTime @default(now())
 
-  board   Board @relation("BoardAudits", fields: [boardId], references: [id], onDelete: Cascade)
-  actor   User? @relation("ActorAudits", fields: [actorId], references: [id])
+  board Board @relation("BoardAudits", fields: [boardId], references: [id], onDelete: Cascade)
+  actor User? @relation("ActorAudits", fields: [actorId], references: [id])
 
   @@index([boardId])
   @@index([actorId])
 }
 
-/* ---------------------- EMAIL VERIFICATION ---------------------- */
+/**
+ * ---------------------- EMAIL VERIFICATION ----------------------
+ */
 
 model EmailVerification {
   id        Int      @id @default(autoincrement())
