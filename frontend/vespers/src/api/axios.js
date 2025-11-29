@@ -18,9 +18,16 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      console.warn("Session expired or not authorized");
-      window.location.href = "/login"; // redirect to login
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.warn("Session expired or not authorized");
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      } else if (error.response.status === 503) {
+        // Dispatch event for App.jsx to catch
+        window.dispatchEvent(new Event("maintenance"));
+      }
     }
     return Promise.reject(error);
   }

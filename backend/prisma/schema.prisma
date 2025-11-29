@@ -19,6 +19,7 @@ model User {
   role          Role     @default(Viewer)
   createdAt     DateTime @default(now())
   emailVerified Boolean  @default(false)
+  isSuspended   Boolean  @default(false)
 
   Profile     Profile?
   BoardMember BoardMember[]
@@ -33,6 +34,13 @@ model User {
   emailVerifications EmailVerification[]
   taskMentions       TaskMention[]
   taskAudits         TaskAudit[]
+  notifications      Notification[]
+  systemLogs         SystemLog[]
+  transactions       Transaction[]
+
+  isPremium        Boolean   @default(false)
+  premiumSince     DateTime?
+  premiumExpiresAt DateTime?
 }
 
 enum Role {
@@ -296,4 +304,84 @@ model TaskAudit {
 
   @@index([boardId])
   @@index([taskId])
+}
+
+/**
+ * ---------------------- NOTIFICATION ----------------------
+ */
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  type      String   @default("SYSTEM") // SYSTEM, ALERT, INFO
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
+/**
+ * ---------------------- SYSTEM LOG ----------------------
+ */
+
+model SystemLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String // LOGIN, LOGOUT, SUSPICIOUS_LOGIN
+  details   Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+}
+
+/**
+ * ---------------------- SYSTEM CONFIG ----------------------
+ */
+
+model SystemConfig {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+/**
+ * ---------------------- PREMIUM & BILLING ----------------------
+ */
+
+model PricingTier {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  duration  Int      @default(30) // Days
+  features  Json?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tierId    Int?
+  amount    Float
+  status    String   @default("COMPLETED") // PENDING, COMPLETED, FAILED
+  createdAt DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id])
+  tier PricingTier? @relation(fields: [tierId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
 }

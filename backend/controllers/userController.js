@@ -63,6 +63,7 @@ const getMe = async (req, res) => {
         phonenumber: true,
         role: true,
         emailVerified: true,
+        isSuspended: true,
       },
     });
 
@@ -109,6 +110,16 @@ const loginUser = async (req, res) => {
 
     issueTokenAndSetCookie(res, user.id);
 
+    // Log login activity
+    await prisma.systemLog.create({
+      data: {
+        userId: user.id,
+        action: "LOGIN",
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      },
+    });
+
     return res.status(200).json({
       message: "Welcome Back",
       user: {
@@ -139,9 +150,42 @@ const logoutUser = async (req, res) => {
     });
     return res.status(200).json({ message: "Logout successful" });
   } catch (err) {
-    console.error("Logout failed: ", err);
     res.status(500).json({ message: "Some error occurred" });
   }
 };
 
-module.exports = { registerUser, loginUser, verifyUser, logoutUser, getMe, updateBasicInfo  };
+const requestUnsuspend = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await prisma.User.findUnique({ where: { id: userId } });
+
+    if (!user.isSuspended) {
+      return res.status(400).json({ message: "User is not suspended" });
+    }
+
+    const { reason } = req.body;
+
+    // Find all admins
+    const admins = await prisma.User.findMany({
+      where: { role: "Admin" },
+    });
+
+    // Create notification for each admin
+    const notifications = admins.map((admin) => ({
+      userId: admin.id,
+      message: `User ${user.name} (${user.email}) has requested to be unsuspended. Reason: "${reason || "No reason provided"}"`,
+      type: "ALERT",
+    }));
+
+    await prisma.notification.createMany({
+      data: notifications,
+    });
+
+    res.json({ message: "Request sent to admins" });
+  } catch (error) {
+    console.error("Error requesting unsuspend:", error);
+    res.status(500).json({ message: "Failed to send request" });
+  }
+};
+
+module.exports = { registerUser, loginUser, verifyUser, logoutUser, getMe, updateBasicInfo, requestUnsuspend };
