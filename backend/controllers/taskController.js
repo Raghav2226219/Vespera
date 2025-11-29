@@ -53,6 +53,10 @@ const createTask = async (req, res) => {
       }
     });
 
+    // 📡 Socket.IO: Emit task created event
+    const io = req.app.get("io");
+    io.to(`board_${boardId}`).emit("task:created", newTask);
+
     res.status(201).json(newTask);
   } catch (err) {
     console.error("Error creating task:", err);
@@ -118,6 +122,10 @@ const updateTask = async (req, res) => {
       }
     });
 
+    // 📡 Socket.IO: Emit task updated event
+    const io = req.app.get("io");
+    io.to(`board_${updatedTask.column.boardId}`).emit("task:updated", updatedTask);
+
     console.log("Task updated successfully:", updatedTask);
     res.json(updatedTask);
   } catch (err) {
@@ -151,7 +159,7 @@ const moveTask = async (req, res) => {
     const newColumnId = parseInt(targetColumnId);
     const newPos = parseInt(newPosition);
 
-    await prisma.$transaction(async (tx) => {
+    const movedTask = await prisma.$transaction(async (tx) => {
       // Adjust positions in old column
       await tx.task.updateMany({
         where: { columnId: oldColumnId, position: { gt: task.position } },
@@ -188,6 +196,18 @@ const moveTask = async (req, res) => {
           }
         }
       });
+
+      return movedTask;
+    });
+
+    // 📡 Socket.IO: Emit task moved event
+    const io = req.app.get("io");
+    io.to(`board_${movedTask.column.boardId}`).emit("task:moved", {
+      taskId: movedTask.id,
+      sourceColumnId: oldColumnId,
+      targetColumnId: newColumnId,
+      newPosition: newPos,
+      task: movedTask // Send full task in case it's needed
     });
 
     res.json({ message: "Task moved successfully." });
@@ -247,6 +267,16 @@ const deleteTask = async (req, res) => {
     await prisma.task.delete({
       where: { id: taskId },
     });
+
+    // 📡 Socket.IO: Emit task deleted event
+    // We need boardId to broadcast. We can get it from taskToDelete (fetched above).
+    if (taskToDelete) {
+        const io = req.app.get("io");
+        io.to(`board_${taskToDelete.column.boardId}`).emit("task:deleted", {
+            taskId: taskId,
+            columnId: taskToDelete.columnId
+        });
+    }
 
     return res.status(200).json({ message: "Task deleted successfully." });
   } catch (err) {

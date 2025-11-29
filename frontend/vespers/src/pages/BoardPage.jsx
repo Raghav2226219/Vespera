@@ -7,6 +7,7 @@ import AddTaskModal from "../components/AddTaskModal";
 import MembersListModal from "../components/MembersListModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext } from "@hello-pangea/dnd";
+import { useSocket } from "../context/SocketContext";
 
 const BoardPage = () => {
   const { boardId } = useParams();
@@ -42,6 +43,95 @@ const BoardPage = () => {
       setError("Failed to load columns.");
     }
   }, [boardId]);
+
+  // 🔌 Socket.IO Integration
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket || !boardId) return;
+
+    // Join the board room
+    socket.emit("join:board", boardId);
+
+    // 👂 Listen for Task Created
+    socket.on("task:created", (newTask) => {
+      setColumns((prevCols) => {
+        const updated = prevCols.map((col) =>
+          col.id === newTask.columnId
+            ? { ...col, tasks: [...col.tasks, newTask] }
+            : col
+        );
+        lastStableColumns.current = updated;
+        return updated;
+      });
+    });
+
+    // 👂 Listen for Task Updated
+    socket.on("task:updated", (updatedTask) => {
+      setColumns((prevCols) => {
+        const updated = prevCols.map((col) => ({
+          ...col,
+          tasks: col.tasks.map((task) =>
+            task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+          ),
+        }));
+        lastStableColumns.current = updated;
+        return updated;
+      });
+    });
+
+    // 👂 Listen for Task Moved
+    socket.on("task:moved", ({ taskId, sourceColumnId, targetColumnId, newPosition, task }) => {
+      setColumns((prevCols) => {
+        // Deep copy to avoid mutation issues
+        const updated = prevCols.map(col => ({
+            ...col,
+            tasks: [...col.tasks]
+        }));
+
+        const sourceCol = updated.find(c => c.id === sourceColumnId);
+        const destCol = updated.find(c => c.id === targetColumnId);
+
+        if (!sourceCol || !destCol) return prevCols;
+
+        // Remove from source
+        const taskIndex = sourceCol.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return prevCols;
+        
+        const [movedTask] = sourceCol.tasks.splice(taskIndex, 1);
+        
+        // Update task properties if provided, otherwise use existing
+        const taskToInsert = task ? { ...task } : { ...movedTask, columnId: targetColumnId };
+
+        // Insert into destination
+        destCol.tasks.splice(newPosition, 0, taskToInsert);
+
+        lastStableColumns.current = updated;
+        return updated;
+      });
+    });
+
+    // 👂 Listen for Task Deleted
+    socket.on("task:deleted", ({ taskId, columnId }) => {
+      setColumns((prevCols) => {
+        const updated = prevCols.map((col) =>
+          col.id === columnId
+            ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+            : col
+        );
+        lastStableColumns.current = updated;
+        return updated;
+      });
+    });
+
+    return () => {
+      socket.emit("leave:board", boardId);
+      socket.off("task:created");
+      socket.off("task:updated");
+      socket.off("task:moved");
+      socket.off("task:deleted");
+    };
+  }, [socket, boardId]);
 
   useEffect(() => {
     const loadData = async () => {
