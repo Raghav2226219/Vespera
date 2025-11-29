@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const LeftSidebar = ({ open, onClose }) => {
+const LeftSidebar = ({ open, onClose, user }) => {
   const navigate = useNavigate();
 
   // 💡 Base button style
@@ -127,6 +127,18 @@ const LeftSidebar = ({ open, onClose }) => {
               >
                 <Trash2 className="w-5 h-5 text-yellow-300" /> Trash
               </motion.button>
+
+              {/* 👑 Admin Controls */}
+              {(user?.role === "Admin" || user?.role === "Owner") && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => navigate("/admin")}
+                  className={highlightButtonClasses + " mt-4"}
+                >
+                  <LayoutDashboard className="w-5 h-5 text-yellow-900" />
+                  <span className="text-yellow-900 font-bold">Admin Controls</span>
+                </motion.button>
+              )}
             </div>
 
             {/* Footer */}

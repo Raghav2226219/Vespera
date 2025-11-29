@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import api from "../../api/axios";
 import VesperaHologram from "../../components/VesperaHologram";
 
-const Login = () => {
+const Login = ({ adminOnly = false }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,12 +17,24 @@ const Login = () => {
     setError("");
     try {
       const res = await api.post("/user/login", { email, password });
+      
+      // Admin Only Check
+      if (adminOnly && res.data.user.role !== "Admin" && res.data.user.role !== "Owner") {
+        throw new Error("Access Denied: Admins only.");
+      }
+
       localStorage.setItem("accessToken", res.data.accessToken);
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err) {
-      setError(err?.response?.data?.message || "Login failed");
+      if (err.message === "Access Denied: Admins only.") {
+        setError(err.message);
+        // Clear any partial session data if backend set cookies
+        await api.post("/user/logout").catch(() => {}); 
+      } else {
+        setError(err?.response?.data?.message || "Login failed");
+      }
     }
   };
 
@@ -84,7 +96,7 @@ const Login = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="text-4xl font-extrabold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(190,255,150,0.5)]"
           >
-            Vespera Access Portal
+            {adminOnly ? "Admin Access Portal" : "Vespera Access Portal"}
           </motion.h1>
 
           <motion.div

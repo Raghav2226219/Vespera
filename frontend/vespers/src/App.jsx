@@ -122,6 +122,7 @@ const AnimatedRoutes = () => {
             {/* Auth Routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/admin/login" element={<Login adminOnly={true} />} />
             <Route path="/register" element={<Register />} />
 
             {/* Protected Routes */}

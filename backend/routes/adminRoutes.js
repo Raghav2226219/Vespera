@@ -34,6 +34,8 @@ router.use(protect);
 router.use(authorize("Admin"));
 
 router.get("/users", getAllUsers);
+router.put("/users/:id/role", updateUserRole);
+router.put("/users/:id/suspend", toggleUserSuspension);
 router.post("/premium/tiers", manageTier);
 router.delete("/premium/tiers/:id", deleteTier);
 router.get("/premium/revenue", getRevenueStats);

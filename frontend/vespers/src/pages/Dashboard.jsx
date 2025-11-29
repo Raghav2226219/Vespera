@@ -49,7 +49,11 @@ const Dashboard = () => {
 
       <div className="flex flex-1 relative">
         {/* 🌙 Sidebar */}
-        <LeftSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <LeftSidebar 
+          open={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+          user={user}
+        />
 
         {/* 🔲 Mobile overlay */}
         <AnimatePresence>

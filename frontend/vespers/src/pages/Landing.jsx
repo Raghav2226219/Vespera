@@ -59,6 +59,12 @@ export default function Landing() {
 
           <div className="flex items-center gap-4">
             <Link
+              to="/admin/login"
+              className="px-4 py-2 text-sm rounded-lg border border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20 hover:text-white transition-all"
+            >
+              Admin Login
+            </Link>
+            <Link
               to="/login"
               className="px-4 py-2 text-sm rounded-lg border border-yellow-400/20 bg-white/5 text-white/80 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,150,0.25)] transition-all"
             >
