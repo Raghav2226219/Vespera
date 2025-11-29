@@ -1,4 +1,4 @@
-const prisma = require("../config/db")
+const prisma = require("../config/db");
 
 const checkBoardMember = async (req, res, next) => {
   try {
@@ -34,7 +34,7 @@ const checkBoardMember = async (req, res, next) => {
           where: {
             boardId_userId: { boardId, userId },
           },
-          update: {},
+          update: { role: "Owner" }, // Force update role to Owner if exists but wrong
           create: {
             boardId,
             userId,
@@ -43,7 +43,24 @@ const checkBoardMember = async (req, res, next) => {
           include: { board: true },
         });
       } else {
-        return res.status(403).json({ message: "Access denied: not a board member" });
+        return res
+          .status(403)
+          .json({ message: "Access denied: not a board member" });
+      }
+    } else {
+      // ✅ Self-healing: If user IS a member but is actually the OWNER, ensure role is Owner
+      // (This fixes the "Access denied insufficient role" bug if data got out of sync)
+      const board = await prisma.board.findUnique({
+        where: { id: boardId },
+        select: { ownerId: true },
+      });
+
+      if (board && board.ownerId === userId && membership.role !== "Owner") {
+        membership = await prisma.boardMember.update({
+          where: { id: membership.id },
+          data: { role: "Owner" },
+          include: { board: true },
+        });
       }
     }
 
@@ -56,26 +73,27 @@ const checkBoardMember = async (req, res, next) => {
   }
 };
 
-
 const authorizeBoardRoles = (...allowedRoles) => {
-    return (req, res, next) => {
-        if(!req.boardMember){
-            return res.status(500).json({ message : "Board membership not checked"});
-        }
+  return (req, res, next) => {
+    if (!req.boardMember) {
+      return res.status(500).json({ message: "Board membership not checked" });
+    }
 
-        if( !allowedRoles.includes(req.boardMember.role)){
-             return res.status(403).json({ message : "Access denied: insufficient role"});
-        }
+    if (!allowedRoles.includes(req.boardMember.role)) {
+      return res
+        .status(403)
+        .json({ message: "Access denied: insufficient role" });
+    }
 
-        next();
-    };
+    next();
+  };
 };
 
 const isBoardOwner = (req) => {
-    if(!req.boardMember){
-        throw new Error("Board membership not checked yet");
-    }
-    return req.boardMember.role === "Owner";
-}
+  if (!req.boardMember) {
+    throw new Error("Board membership not checked yet");
+  }
+  return req.boardMember.role === "Owner";
+};
 
-module.exports = {checkBoardMember, authorizeBoardRoles, isBoardOwner};
+module.exports = { checkBoardMember, authorizeBoardRoles, isBoardOwner };

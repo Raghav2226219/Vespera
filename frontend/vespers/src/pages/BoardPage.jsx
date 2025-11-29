@@ -4,6 +4,7 @@ import api from "../api/axios";
 import Column from "../components/Column";
 import Loader from "../components/Loader";
 import AddTaskModal from "../components/AddTaskModal";
+import MembersListModal from "../components/MembersListModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext } from "@hello-pangea/dnd";
 
@@ -14,6 +15,7 @@ const BoardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", description: "" });
   const [creating, setCreating] = useState(false);
 
@@ -204,7 +206,11 @@ const BoardPage = () => {
   return (
     <div className="relative h-screen overflow-y-hidden bg-gradient-to-br from-gray-950 via-emerald-950 to-emerald-900 text-white p-4 md:p-8">
       {/* Header Section */}
-      <AddTaskModal board={board} onAddTaskClick={() => setShowTaskModal(true)} />
+      <AddTaskModal
+        board={board}
+        onAddTaskClick={() => setShowTaskModal(true)}
+        onViewMembers={() => setShowMembersModal(true)}
+      />
 
       {/* Columns */}
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -293,6 +299,13 @@ const BoardPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Members List Modal */}
+      <MembersListModal
+        isOpen={showMembersModal}
+        onClose={() => setShowMembersModal(false)}
+        members={board?.members || []}
+      />
     </div>
   );
 };
