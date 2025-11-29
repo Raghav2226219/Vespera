@@ -22,6 +22,7 @@ import InviteAuditsAllPage from "./pages/InviteAuditsAllPage";
 import BoardAuditsPage from "./pages/BoardAuditsPage";
 import AcceptInvitePage from "./pages/AcceptInvitePage";
 import AdminDashboard from "./pages/AdminDashboard";
+import TaskAuditsPage from "./pages/TaskAuditsPage";
 
 function App() {
   return (
@@ -81,6 +82,7 @@ const AnimatedRoutes = () => {
             <Route path="/archive" element={<ArchivePage />} />
             <Route path="/invite-audits" element={<InviteAuditsAllPage />} />
             <Route path="/board-audits" element={<BoardAuditsPage />} />
+            <Route path="/task-audits" element={<TaskAuditsPage />} />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
           </Routes>

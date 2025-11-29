@@ -92,12 +92,13 @@ const LeftSidebar = ({ open, onClose }) => {
                 <ClipboardList className="w-5 h-5 text-yellow-300" /> Board Audits
               </motion.button>
 
-              {/* Import Tasks */}
+              {/* Task Audits */}
               <motion.button
                 whileHover={{ scale: 1.03 }}
+                onClick={() => navigate("/task-audits")}
                 className={baseButtonClasses}
               >
-                <Upload className="w-5 h-5 text-yellow-300" /> Import Tasks
+                <ClipboardList className="w-5 h-5 text-yellow-300" /> Task Audits
               </motion.button>
 
               {/* Invite Audits */}

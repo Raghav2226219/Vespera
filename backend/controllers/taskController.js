@@ -36,6 +36,23 @@ const createTask = async (req, res) => {
       },
     });
 
+    // 📝 Audit Log: Created
+    await prisma.taskAudit.create({
+      data: {
+        taskId: newTask.id,
+        boardId: parseInt(boardId),
+        actorId: req.user.id,
+        action: "created",
+        details: {
+          title: newTask.title,
+          priority: newTask.priority,
+          status: todoColumn.name,
+          dueDate: null,
+          mentions: []
+        }
+      }
+    });
+
     res.status(201).json(newTask);
   } catch (err) {
     console.error("Error creating task:", err);
@@ -81,6 +98,24 @@ const updateTask = async (req, res) => {
     const updatedTask = await prisma.task.update({
       where: { id: parseInt(id) },
       data: updateData,
+      include: { column: true, mentions: { include: { user: { select: { name: true } } } } }
+    });
+
+    // 📝 Audit Log: Updated
+    await prisma.taskAudit.create({
+      data: {
+        taskId: updatedTask.id,
+        boardId: updatedTask.column.boardId,
+        actorId: req.user.id,
+        action: "updated",
+        details: {
+          title: updatedTask.title,
+          priority: updatedTask.priority,
+          status: updatedTask.column.name,
+          dueDate: updatedTask.dueDate,
+          mentions: updatedTask.mentions.map(m => m.user.name)
+        }
+      }
     });
 
     console.log("Task updated successfully:", updatedTask);
@@ -130,9 +165,28 @@ const moveTask = async (req, res) => {
       });
 
       // Finally, move the task
-      await tx.task.update({
+      const movedTask = await tx.task.update({
         where: { id: parseInt(id) },
         data: { columnId: newColumnId, position: newPos },
+        include: { column: true }
+      });
+
+      // 📝 Audit Log: Moved
+      // Note: We need boardId. Column has boardId.
+      await tx.taskAudit.create({
+        data: {
+          taskId: movedTask.id,
+          boardId: movedTask.column.boardId,
+          actorId: req.user.id,
+          action: "moved",
+          details: {
+            title: movedTask.title,
+            priority: movedTask.priority,
+            status: movedTask.column.name, // New status
+            fromColumnId: oldColumnId,
+            toColumnId: newColumnId
+          }
+        }
       });
     });
 
@@ -160,6 +214,36 @@ const deleteTask = async (req, res) => {
     }
 
     // ✅ Delete task safely
+    // First fetch details for audit
+    const taskToDelete = await prisma.task.findUnique({
+        where: { id: taskId },
+        include: { column: true }
+    });
+
+    if (taskToDelete) {
+        await prisma.taskAudit.create({
+            data: {
+                taskId: null, // Task is being deleted, but we can keep ID if we want, but relation is SetNull. 
+                              // Actually, if we set taskId here, and then delete task, it will be set to null by DB.
+                              // So we can set it.
+                // Wait, if we delete the task in the next step, the relation sets it to null.
+                // But we want to preserve the history.
+                // The `taskId` field in TaskAudit is Int?.
+                // If we set it to `taskId`, it will become null.
+                // But we can store the ID in details if we want to search by it later (though hard).
+                boardId: taskToDelete.column.boardId,
+                actorId: req.user.id,
+                action: "deleted",
+                details: {
+                    title: taskToDelete.title,
+                    priority: taskToDelete.priority,
+                    status: taskToDelete.column.name,
+                    taskId: taskToDelete.id // Store ID in details
+                }
+            }
+        });
+    }
+
     await prisma.task.delete({
       where: { id: taskId },
     });

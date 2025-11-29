@@ -32,6 +32,7 @@ model User {
   boardAudits        BoardAudit[]        @relation("ActorAudits")
   emailVerifications EmailVerification[]
   taskMentions       TaskMention[]
+  taskAudits         TaskAudit[]
 }
 
 enum Role {
@@ -98,7 +99,8 @@ model Board {
   logs    InviteLog[]
   columns Column[]
 
-  audits BoardAudit[] @relation("BoardAudits")
+  audits     BoardAudit[] @relation("BoardAudits")
+  taskAudits TaskAudit[]
 
   @@unique([ownerId, title])
   @@index([status])
@@ -213,6 +215,7 @@ model Task {
   priority TaskPriority @default(MEDIUM)
 
   mentions TaskMention[]
+  audits   TaskAudit[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -272,4 +275,25 @@ model EmailVerification {
 
   @@index([userId])
   @@index([used])
+}
+
+/**
+ * ---------------------- TASK AUDIT ----------------------
+ */
+
+model TaskAudit {
+  id        Int      @id @default(autoincrement())
+  taskId    Int?
+  boardId   Int
+  actorId   Int
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  task  Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  actor User  @relation(fields: [actorId], references: [id])
+
+  @@index([boardId])
+  @@index([taskId])
 }

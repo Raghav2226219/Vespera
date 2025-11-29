@@ -1,9 +1,10 @@
 const { defineConfig } = require('@prisma/config');
+require('dotenv').config();
+
+console.log("Config loaded, URL:", process.env.DATABASE_URL ? "Found" : "Missing");
 
 module.exports = defineConfig({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
+  datasource: {
+    url: process.env.DATABASE_URL,
   },
 });

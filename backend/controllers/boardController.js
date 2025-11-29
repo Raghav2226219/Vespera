@@ -387,10 +387,30 @@ const fetchBoardInfo = async (req, res) => {
         owner: { select: { id: true, name: true, email: true } },
         archivedBy: { select: { id: true, name: true, email: true } },
         trashedBy: { select: { id: true, name: true, email: true } },
+        columns: {
+          include: {
+            tasks: true,
+          },
+        },
       },
     });
 
     if (!board) return res.status(404).json({ message: "Board not found" });
+
+    // 📊 Calculate Task Stats
+    let totalTasks = 0;
+    let todoTasks = 0;
+    let inProgressTasks = 0;
+    let completedTasks = 0;
+
+    board.columns.forEach((col) => {
+      const count = col.tasks.length;
+      totalTasks += count;
+
+      if (col.name === "To Do") todoTasks += count;
+      else if (col.name === "In Progress") inProgressTasks += count;
+      else if (col.name === "Done") completedTasks += count;
+    });
 
     res.json({
       id: board.id,
@@ -404,6 +424,12 @@ const fetchBoardInfo = async (req, res) => {
       owner: board.owner,
       archivedBy: board.archivedBy,
       trashedBy: board.trashedBy,
+      stats: {
+        total: totalTasks,
+        todo: todoTasks,
+        inProgress: inProgressTasks,
+        completed: completedTasks,
+      },
     });
   } catch (err) {
     console.error("Error fetching board info:", err);

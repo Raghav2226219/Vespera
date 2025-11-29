@@ -29,6 +29,7 @@ const testRoute = require("./routes/testRoute");
 const emailVerificationRoute = require("./routes/emailVerificationRoute");
 const taskMentionRoute = require("./routes/taskMentionRoute");
 const boardAuditRoutes = require("./routes/boardAuditRoute");
+const taskAuditRoutes = require("./routes/taskAuditRoute");
 
 app.get("/", (req, res) => {
   res.send("API is running");
@@ -45,6 +46,8 @@ app.use("/api/test", testRoute);
 app.use("/api/email", emailVerificationRoute);
 app.use("/api/task-mentions", taskMentionRoute);
 app.use("/api/board-audits", boardAuditRoutes);
+app.use("/api/task-audits", taskAuditRoutes);
+
 // ====== EXISTING CRON: Clean cancelled invites every hour ======
 cron.schedule("0 * * * *", async () => {
   try {

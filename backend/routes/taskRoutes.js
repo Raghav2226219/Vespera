@@ -7,9 +7,11 @@ const {
   deleteTask,
 } = require("../controllers/taskController");
 
-router.post("/:boardId/:columnId", createTask);
-router.put("/:id", updateTask);
-router.put("/move/:id", moveTask); // ✅ important
-router.delete("/:id", deleteTask);
+const { protect } = require("../middleware/authMiddleware");
+
+router.post("/:boardId/:columnId", protect, createTask);
+router.put("/:id", protect, updateTask);
+router.put("/move/:id", protect, moveTask); // ✅ important
+router.delete("/:id", protect, deleteTask);
 
 module.exports = router;
