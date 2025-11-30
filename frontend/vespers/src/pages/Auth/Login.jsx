@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; // eslint-disable-line no-unused-vars
 import { Eye, EyeOff } from "lucide-react";
 import api from "../../api/axios";
 import VesperaHologram from "../../components/VesperaHologram";
+import NotAdminPopup from "../../components/auth/NotAdminPopup";
 
 const Login = ({ adminOnly = false }) => {
   const navigate = useNavigate();
@@ -11,16 +12,58 @@ const Login = ({ adminOnly = false }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [showNotAdminPopup, setShowNotAdminPopup] = useState(false);
+
+  useEffect(() => {
+    const checkSession = () => {
+      const userStr = localStorage.getItem("user");
+      console.log("Login Check - adminOnly:", adminOnly);
+      console.log("Login Check - userStr:", userStr);
+
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          console.log("Login Check - Parsed User:", user);
+          
+          if (adminOnly) {
+            const role = user.role || "";
+            console.log("Login Check - Role:", role);
+            
+            // Case-insensitive check for extra safety
+            if (role.toLowerCase() !== "admin") {
+              console.log("Login Check - Access Denied. Showing Popup.");
+              setShowNotAdminPopup(true);
+              // Do NOT navigate
+            } else {
+              console.log("Login Check - Access Granted. Navigating to Dashboard.");
+              navigate("/dashboard");
+            }
+          } else {
+            console.log("Login Check - Not Admin Route. Navigating to Dashboard.");
+            navigate("/dashboard");
+          }
+        } catch (e) {
+          console.error("Login Check - Error parsing user:", e);
+          // If error, let them login again (do nothing)
+        }
+      }
+    };
+    checkSession();
+  }, [adminOnly, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       const res = await api.post("/user/login", { email, password });
+      console.log("Login Submit - Response:", res.data);
       
       // Admin Only Check
-      if (adminOnly && res.data.user.role !== "Admin" && res.data.user.role !== "Owner") {
-        throw new Error("Access Denied: Admins only.");
+      if (adminOnly) {
+        const role = res.data.user.role || "";
+        if (role.toLowerCase() !== "admin") {
+          throw new Error("Access Denied: Admins only.");
+        }
       }
 
       localStorage.setItem("accessToken", res.data.accessToken);
@@ -28,8 +71,10 @@ const Login = ({ adminOnly = false }) => {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err) {
+      console.log("Login Submit - Error:", err.message);
       if (err.message === "Access Denied: Admins only.") {
-        setError(err.message);
+        // Show the popup instead of setting error text
+        setShowNotAdminPopup(true);
         // Clear any partial session data if backend set cookies
         await api.post("/user/logout").catch(() => {}); 
       } else {
@@ -40,6 +85,9 @@ const Login = ({ adminOnly = false }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#010805] via-[#031512] to-[#04231b] text-white overflow-hidden">
+      {/* 🚨 Not Admin Popup */}
+      <NotAdminPopup show={showNotAdminPopup} onClose={() => setShowNotAdminPopup(false)} />
+
       {/* 🌌 Ambient Light Orbs */}
       <motion.div
         animate={{ x: [0, 25, -25, 0], y: [0, -25, 25, 0] }}

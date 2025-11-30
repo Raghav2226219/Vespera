@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Users, LayoutDashboard, Activity, AlertTriangle, Loader2 } from "lucide-react";
+import { Users, LayoutDashboard, Activity, AlertTriangle, Loader2, Mail } from "lucide-react";
 import api from "../../api/axios";
+import { formatDistanceToNow } from "date-fns";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -9,20 +10,25 @@ const AdminDashboard = () => {
     totalTasks: 0,
     pendingInvites: 0,
   });
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get("/admin/stats");
-        setStats(res.data);
+        const [statsRes, activitiesRes] = await Promise.all([
+          api.get("/admin/stats"),
+          api.get("/admin/activity-logs?limit=10"),
+        ]);
+        setStats(statsRes.data);
+        setActivities(activitiesRes.data.logs);
       } catch (err) {
-        console.error("Error fetching admin stats:", err);
+        console.error("Error fetching admin data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
   const statCards = [
@@ -31,6 +37,16 @@ const AdminDashboard = () => {
     { label: "Total Tasks", value: stats.totalTasks, icon: Activity, color: "text-green-400", bg: "bg-green-400/10" },
     { label: "Pending Invites", value: stats.pendingInvites, icon: AlertTriangle, color: "text-yellow-400", bg: "bg-yellow-400/10" },
   ];
+
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case "SYSTEM": return <Users className="w-4 h-4 text-blue-400" />;
+      case "BOARD": return <LayoutDashboard className="w-4 h-4 text-emerald-400" />;
+      case "TASK": return <Activity className="w-4 h-4 text-purple-400" />;
+      case "INVITE": return <Mail className="w-4 h-4 text-yellow-400" />;
+      default: return <Activity className="w-4 h-4 text-gray-400" />;
+    }
+  };
 
   if (loading) {
     return (
@@ -65,17 +81,36 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* Recent Activity Placeholder (Can be updated later) */}
+      {/* Recent Activity */}
       <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-        <h2 className="text-xl font-bold text-white mb-4">Recent System Activity</h2>
+        <h2 className="text-xl font-bold text-white mb-6">Recent System Activity</h2>
         <div className="space-y-4">
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-black/20">
-            <div className="w-2 h-2 rounded-full bg-emerald-400" />
-            <p className="text-gray-300 text-sm">
-              System monitoring active. Real-time logs coming soon.
-            </p>
-            <span className="ml-auto text-xs text-gray-500">Just now</span>
-          </div>
+          {activities.length > 0 ? (
+            activities.map((log) => (
+              <div key={log.id} className="flex items-center gap-4 p-4 rounded-xl bg-black/20 hover:bg-black/30 transition-colors">
+                <div className="p-2 rounded-lg bg-white/5">
+                  {getActivityIcon(log.type)}
+                </div>
+                <div className="flex-1">
+                  <p className="text-gray-200 text-sm font-medium">
+                    {log.user?.name || "System"} <span className="text-gray-500 font-normal">performed</span> {log.type.toLowerCase()} action
+                  </p>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    {log.details && typeof log.details === 'string' 
+                      ? log.details 
+                      : JSON.stringify(log.details)}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-500 whitespace-nowrap">
+                  {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No recent activity found
+            </div>
+          )}
         </div>
       </div>
     </div>
