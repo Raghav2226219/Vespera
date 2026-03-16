@@ -39,16 +39,39 @@ import SuspendedPage from "./pages/SuspendedPage";
 
 function App() {
   const [maintenance, setMaintenance] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  // Poll maintenance status from backend every 30s
   useEffect(() => {
-    const handleMaintenance = () => setMaintenance(true);
-    window.addEventListener("maintenance", handleMaintenance);
-    return () => window.removeEventListener("maintenance", handleMaintenance);
+    const checkMaintenance = async () => {
+      try {
+        const res = await api.get("/config/status");
+        setMaintenance(res.data.maintenance === true);
+      } catch {
+        setMaintenance(false); // Fail open
+      }
+      // Check if current user is Admin
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          setIsAdmin(u?.role === "Admin");
+        } catch {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkMaintenance();
+    const interval = setInterval(checkMaintenance, 300000); // re-check every 5 minutes
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <Router>
-      {maintenance && <MaintenancePage />}
+      {maintenance && !isAdmin && <MaintenancePage />}
       <AnimatedRoutes />
     </Router>
   );

@@ -15,20 +15,20 @@ const MaintenancePage = () => {
           <Wrench className="w-10 h-10 text-yellow-500" />
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-2">System Maintenance</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">Under Development</h1>
         <p className="text-gray-400 mb-6 leading-relaxed">
-          We are currently performing scheduled maintenance to improve our services. 
-          Please check back soon.
+          We're currently building something amazing. Vespera is under active 
+          development and will be available soon.
         </p>
 
         <div className="flex items-center justify-center gap-2 text-yellow-400/80 bg-yellow-500/5 py-3 px-4 rounded-xl border border-yellow-500/10">
           <Clock className="w-5 h-5" />
-          <span className="text-sm font-medium">Estimated downtime: ~30 mins</span>
+          <span className="text-sm font-medium">Check back soon — we're almost ready</span>
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-500">
           <AlertTriangle className="w-4 h-4" />
-          <span>Vespera Systems • Status: Maintenance</span>
+          <span>Vespera Systems • Status: Under Development</span>
         </div>
       </motion.div>
     </div>

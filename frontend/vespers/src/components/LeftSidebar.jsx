@@ -129,7 +129,7 @@ const LeftSidebar = ({ open, onClose, user }) => {
               </motion.button>
 
               {/* 👑 Admin Controls */}
-              {(user?.role === "Admin" || user?.role === "Owner") && (
+              {user?.role === "Admin" && (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   onClick={() => navigate("/admin")}

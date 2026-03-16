@@ -19,7 +19,7 @@ const Column = ({ column, boardId, onTaskDelete, onTaskUpdate, boardMembers }) =
                  bg-gradient-to-br from-gray-950/80 via-emerald-950/60 to-lime-950/50
                  shadow-[0_0_25px_rgba(255,255,150,0.08)]
                  transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,255,150,0.2)]
-                 hover:scale-[1.01] overflow-hidden"
+                 hover:scale-[1.01]"
     >
       {/* ✨ Animated soft glow background */}
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 via-lime-400/5 to-transparent blur-2xl pointer-events-none"></div>

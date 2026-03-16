@@ -15,39 +15,40 @@ const Login = ({ adminOnly = false }) => {
   const [showNotAdminPopup, setShowNotAdminPopup] = useState(false);
 
   useEffect(() => {
-    const checkSession = () => {
+    const checkSession = async () => {
       const userStr = localStorage.getItem("user");
-      console.log("Login Check - adminOnly:", adminOnly);
-      console.log("Login Check - userStr:", userStr);
+      
+      // If no user in local storage, definitely stay on login page
+      if (!userStr) return;
 
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          console.log("Login Check - Parsed User:", user);
-          
-          if (adminOnly) {
-            const role = user.role || "";
-            console.log("Login Check - Role:", role);
-            
-            // Case-insensitive check for extra safety
-            if (role.toLowerCase() !== "admin") {
-              console.log("Login Check - Access Denied. Showing Popup.");
-              setShowNotAdminPopup(true);
-              // Do NOT navigate
-            } else {
-              console.log("Login Check - Access Granted. Navigating to Dashboard.");
-              navigate("/dashboard");
-            }
-          } else {
-            console.log("Login Check - Not Admin Route. Navigating to Dashboard.");
-            navigate("/dashboard");
-          }
-        } catch (e) {
-          console.error("Login Check - Error parsing user:", e);
-          // If error, let them login again (do nothing)
+      try {
+        // VERIFY with backend to ensure token/session is actually valid
+        const { data } = await api.get("/user/me");
+        
+        // If successful, update user in localStorage
+        localStorage.setItem("user", JSON.stringify(data));
+
+        // Check Admin Role if needed
+        if (adminOnly) {
+           const role = data.role || "";
+           if (role.toLowerCase() !== "admin") {
+             setShowNotAdminPopup(true);
+             return; // Do not navigate
+           }
         }
+        
+        // If we get here, session is valid and authorized
+        navigate("/dashboard");
+
+      } catch (error) {
+        console.error("Session verification failed:", error);
+        // If backend says no (401, etc), clear local storage so we stop trying to redirect
+        localStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
       }
     };
+    
     checkSession();
   }, [adminOnly, navigate]);
 
@@ -57,13 +58,22 @@ const Login = ({ adminOnly = false }) => {
     try {
       const res = await api.post("/user/login", { email, password });
       console.log("Login Submit - Response:", res.data);
-      
-      // Admin Only Check
+
+      // ✅ Admin Only Check BEFORE saving tokens
       if (adminOnly) {
         const role = res.data.user.role || "";
         if (role.toLowerCase() !== "admin") {
-          throw new Error("Access Denied: Admins only.");
+          // Clear cookie session immediately — don't save any tokens
+          await api.post("/user/logout").catch(() => {});
+          setShowNotAdminPopup(true);
+          return; // Stop here — nothing gets stored
         }
+        // Admin confirmed — navigate to admin dashboard
+        localStorage.setItem("accessToken", res.data.accessToken);
+        localStorage.setItem("refreshToken", res.data.refreshToken);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/admin");
+        return;
       }
 
       localStorage.setItem("accessToken", res.data.accessToken);
@@ -72,14 +82,7 @@ const Login = ({ adminOnly = false }) => {
       navigate("/dashboard");
     } catch (err) {
       console.log("Login Submit - Error:", err.message);
-      if (err.message === "Access Denied: Admins only.") {
-        // Show the popup instead of setting error text
-        setShowNotAdminPopup(true);
-        // Clear any partial session data if backend set cookies
-        await api.post("/user/logout").catch(() => {}); 
-      } else {
-        setError(err?.response?.data?.message || "Login failed");
-      }
+      setError(err?.response?.data?.message || "Login failed");
     }
   };
 

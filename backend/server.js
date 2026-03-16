@@ -1,3 +1,6 @@
+// raghav19092004 = 1234 password
+// raghav2004kaushal = 12345 password
+
 require("dotenv").config();
 
 const express = require("express");
@@ -45,6 +48,10 @@ app.use(
     credentials: true,
   })
 );
+
+// Public config route (must be BEFORE maintenance check)
+const { getPublicStatus } = require("./controllers/systemConfigController");
+app.get("/api/config/status", getPublicStatus);
 
 // Global Maintenance Check
 app.use(checkMaintenanceMode);

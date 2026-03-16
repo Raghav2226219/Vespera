@@ -21,6 +21,8 @@ const BoardPage = () => {
   const [creating, setCreating] = useState(false);
 
   const lastStableColumns = useRef([]);
+  // Tracks task IDs that this client is currently moving (to suppress own socket echo)
+  const pendingMoves = useRef(new Set());
 
   const fetchBoard = useCallback(async () => {
     try {
@@ -82,11 +84,18 @@ const BoardPage = () => {
 
     // 👂 Listen for Task Moved
     socket.on("task:moved", ({ taskId, sourceColumnId, targetColumnId, newPosition, task }) => {
+      // ✅ Skip if this is our own move — we already applied it optimistically in handleDragEnd
+      // Normalize to string to avoid int vs string mismatch from Prisma vs DnD
+      if (pendingMoves.current.has(taskId.toString())) {
+        pendingMoves.current.delete(taskId.toString());
+        return;
+      }
+
       setColumns((prevCols) => {
         // Deep copy to avoid mutation issues
         const updated = prevCols.map(col => ({
-            ...col,
-            tasks: [...col.tasks]
+          ...col,
+          tasks: [...col.tasks]
         }));
 
         const sourceCol = updated.find(c => c.id === sourceColumnId);
@@ -97,9 +106,9 @@ const BoardPage = () => {
         // Remove from source
         const taskIndex = sourceCol.tasks.findIndex(t => t.id === taskId);
         if (taskIndex === -1) return prevCols;
-        
+
         const [movedTask] = sourceCol.tasks.splice(taskIndex, 1);
-        
+
         // Update task properties if provided, otherwise use existing
         const taskToInsert = task ? { ...task } : { ...movedTask, columnId: targetColumnId };
 
@@ -162,20 +171,13 @@ const BoardPage = () => {
         return;
       }
 
-      const taskRes = await api.post(`/tasks/${boardId}/${todoColumn.id}`, {
+      await api.post(`/tasks/${boardId}/${todoColumn.id}`, {
         title: newTask.title,
         description: newTask.description,
       });
 
-      setColumns((prevCols) => {
-        const updated = prevCols.map((col) =>
-          col.id === todoColumn.id
-            ? { ...col, tasks: [...col.tasks, taskRes.data] }
-            : col
-        );
-        lastStableColumns.current = updated;
-        return updated;
-      });
+      // ✅ Don't manually update columns here — the socket "task:created" event
+      // will fire and add the task to state, preventing duplicate cards.
 
       setShowTaskModal(false);
       setNewTask({ title: "", description: "" });
@@ -249,7 +251,11 @@ const BoardPage = () => {
     )
       return;
 
+    const taskKey = draggableId.toString();
     const previousColumns = lastStableColumns.current;
+
+    // ✅ Mark this task as a pending own-move so the socket echo is ignored
+    pendingMoves.current.add(taskKey);
 
     setColumns((prevCols) => {
       const updated = prevCols.map((col) => ({
@@ -263,6 +269,8 @@ const BoardPage = () => {
       const destCol = updated.find(
         (c) => c.id.toString() === destination.droppableId
       );
+
+      if (!sourceCol || !destCol) return prevCols;
 
       const [movedTask] = sourceCol.tasks.splice(source.index, 1);
       movedTask.columnId = destCol.id;
@@ -279,6 +287,8 @@ const BoardPage = () => {
       });
     } catch (err) {
       console.error("Error updating task position:", err);
+      // Clean up pending move tracking on failure
+      pendingMoves.current.delete(taskKey);
       setColumns(previousColumns);
       lastStableColumns.current = previousColumns;
     }
@@ -338,50 +348,67 @@ const BoardPage = () => {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-[90%] max-w-md shadow-2xl"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-gradient-to-br from-[#080f0c]/95 via-[#0d1f18]/95 to-[#0a1a14]/95 backdrop-blur-2xl border border-lime-400/25 rounded-2xl p-7 w-[90%] max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_30px_rgba(150,255,100,0.08)] overflow-hidden"
             >
-              <h2 className="text-2xl font-semibold text-emerald-300 mb-4">
-                Create New Task
-              </h2>
+              {/* Shimmer overlay */}
+              <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden">
+                <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,180,0.04)_50%,transparent_100%)] animate-[shine_5s_linear_infinite]" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-lime-300/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent animate-pulse" />
+              </div>
 
-              <form onSubmit={handleCreateTask} className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Task title"
-                  value={newTask.title}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, title: e.target.value })
-                  }
-                  className="w-full bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                />
+              {/* Header */}
+              <div className="relative z-10 flex items-center gap-3 mb-6">
+                <div className="w-1 h-7 rounded-full bg-gradient-to-b from-lime-300 via-yellow-300 to-emerald-400 shadow-[0_0_10px_rgba(200,255,100,0.5)]" />
+                <h2 className="text-xl font-bold bg-gradient-to-r from-lime-300 via-yellow-200 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(200,255,100,0.4)]">
+                  Create New Task
+                </h2>
+              </div>
 
-                <textarea
-                  placeholder="Description (optional)"
-                  value={newTask.description}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, description: e.target.value })
-                  }
-                  rows={3}
-                  className="w-full bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
-                ></textarea>
+              <form onSubmit={handleCreateTask} className="relative z-10 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-lime-300/70 uppercase tracking-widest pl-1">Task Title</label>
+                  <input
+                    type="text"
+                    placeholder="What needs to be done?"
+                    value={newTask.title}
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, title: e.target.value })
+                    }
+                    className="w-full bg-[#0d201a]/70 text-white placeholder-emerald-200/30 border border-lime-400/20 rounded-xl px-4 py-2.5 focus:outline-none focus:border-lime-400/60 focus:shadow-[0_0_15px_rgba(150,255,100,0.15)] transition-all duration-200 text-sm"
+                  />
+                </div>
 
-                <div className="flex justify-end gap-3 mt-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-lime-300/70 uppercase tracking-widest pl-1">Description</label>
+                  <textarea
+                    placeholder="Add some details... (optional)"
+                    value={newTask.description}
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, description: e.target.value })
+                    }
+                    rows={3}
+                    className="w-full bg-[#0d201a]/70 text-white placeholder-emerald-200/30 border border-lime-400/20 rounded-xl px-4 py-2.5 focus:outline-none focus:border-lime-400/60 focus:shadow-[0_0_15px_rgba(150,255,100,0.15)] transition-all duration-200 resize-none text-sm custom-scrollbar"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowTaskModal(false)}
-                    className="px-4 py-2 rounded-lg bg-gray-600/30 text-gray-200 hover:bg-gray-600/50"
+                    className="px-5 py-2.5 rounded-xl bg-gray-800/40 border border-gray-600/30 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-200 text-sm font-medium backdrop-blur-md"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creating}
-                    className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-md transition-all"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-lime-500/80 to-emerald-600/80 border border-lime-400/50 text-white font-bold tracking-wide hover:from-lime-400 hover:to-emerald-500 hover:shadow-[0_0_20px_rgba(150,255,100,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm shadow-[0_0_15px_rgba(150,255,100,0.2)]"
                   >
-                    {creating ? "Creating..." : "Create"}
+                    {creating ? "Creating..." : "✦ Create Task"}
                   </button>
                 </div>
               </form>

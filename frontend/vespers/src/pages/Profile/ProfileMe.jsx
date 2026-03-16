@@ -197,7 +197,7 @@ export default function ProfileMe() {
   const sendOtp = async () => {
     try {
       setOtpSending(true);
-      await api.post("/email/send");
+      await api.post("/send");
       setOtpModalOpen(true);
     } catch (err) {
       console.error(err);

@@ -159,45 +159,43 @@ const moveTask = async (req, res) => {
     const newColumnId = parseInt(targetColumnId);
     const newPos = parseInt(newPosition);
 
-    const movedTask = await prisma.$transaction(async (tx) => {
-      // Adjust positions in old column
-      await tx.task.updateMany({
-        where: { columnId: oldColumnId, position: { gt: task.position } },
-        data: { position: { decrement: 1 } },
-      });
+    // ✅ Run as plain sequential queries to avoid P2028 transaction timeout
+    // on remote/cloud databases (no interactive transaction needed here).
 
-      // Shift tasks in the new column to make space
-      await tx.task.updateMany({
-        where: { columnId: newColumnId, position: { gte: newPos } },
-        data: { position: { increment: 1 } },
-      });
+    // Step 1: Shift tasks down in the old column (fill the gap left by removed task)
+    await prisma.task.updateMany({
+      where: { columnId: oldColumnId, position: { gt: task.position } },
+      data: { position: { decrement: 1 } },
+    });
 
-      // Finally, move the task
-      const movedTask = await tx.task.update({
-        where: { id: parseInt(id) },
-        data: { columnId: newColumnId, position: newPos },
-        include: { column: true }
-      });
+    // Step 2: Shift tasks up in the destination column (make room at newPos)
+    await prisma.task.updateMany({
+      where: { columnId: newColumnId, position: { gte: newPos } },
+      data: { position: { increment: 1 } },
+    });
 
-      // 📝 Audit Log: Moved
-      // Note: We need boardId. Column has boardId.
-      await tx.taskAudit.create({
-        data: {
-          taskId: movedTask.id,
-          boardId: movedTask.column.boardId,
-          actorId: req.user.id,
-          action: "moved",
-          details: {
-            title: movedTask.title,
-            priority: movedTask.priority,
-            status: movedTask.column.name, // New status
-            fromColumnId: oldColumnId,
-            toColumnId: newColumnId
-          }
-        }
-      });
+    // Step 3: Move the task to its new column and position
+    const movedTask = await prisma.task.update({
+      where: { id: parseInt(id) },
+      data: { columnId: newColumnId, position: newPos },
+      include: { column: true },
+    });
 
-      return movedTask;
+    // 📝 Audit Log: Moved
+    await prisma.taskAudit.create({
+      data: {
+        taskId: movedTask.id,
+        boardId: movedTask.column.boardId,
+        actorId: req.user.id,
+        action: "moved",
+        details: {
+          title: movedTask.title,
+          priority: movedTask.priority,
+          status: movedTask.column.name,
+          fromColumnId: oldColumnId,
+          toColumnId: newColumnId,
+        },
+      },
     });
 
     // 📡 Socket.IO: Emit task moved event

@@ -1,5 +1,9 @@
 const prisma = require("../config/db");
 
+// ✅ In-memory cache for maintenance status (avoids hammering DB on every poll)
+let maintenanceCache = { value: false, expiresAt: 0 };
+const CACHE_TTL_MS = 60_000; // 60 seconds
+
 // @desc    Get all system settings
 // @route   GET /api/admin/settings
 // @access  Private/Admin
@@ -69,7 +73,35 @@ const updateSettings = async (req, res) => {
   }
 };
 
+// @desc    Get public system status (maintenance mode) — no auth required
+// @route   GET /api/config/status
+// @access  Public
+const getPublicStatus = async (req, res) => {
+  try {
+    const now = Date.now();
+
+    // Return cached value if still fresh
+    if (now < maintenanceCache.expiresAt) {
+      return res.json({ maintenance: maintenanceCache.value });
+    }
+
+    // Cache expired — fetch from DB
+    const config = await prisma.systemConfig.findUnique({
+      where: { key: "maintenance_mode" },
+    });
+
+    const maintenance = config ? config.value === true : false;
+    maintenanceCache = { value: maintenance, expiresAt: now + CACHE_TTL_MS };
+
+    res.json({ maintenance });
+  } catch (err) {
+    console.error("Error fetching public status:", err);
+    res.json({ maintenance: maintenanceCache.value ?? false }); // Use cached value on error
+  }
+};
+
 module.exports = {
   getSettings,
   updateSettings,
+  getPublicStatus,
 };

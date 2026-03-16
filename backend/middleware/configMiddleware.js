@@ -18,7 +18,7 @@ const checkMaintenanceMode = async (req, res, next) => {
         try {
           const jwt = require("jsonwebtoken");
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          if (decoded.role === "Admin" || decoded.role === "Owner") {
+          if (decoded.role === "Admin") {
             return next();
           }
         } catch (e) {
