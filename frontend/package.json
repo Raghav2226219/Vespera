@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "date-fns": "^4.1.0",
     "react-calendar": "^6.0.0",
-    "react-date-picker": "^12.0.1"
+    "react-date-picker": "^12.0.1",
+    "react-is": "^19.2.3",
+    "recharts": "^3.6.0",
+    "socket.io-client": "^4.8.3"
   }
 }
