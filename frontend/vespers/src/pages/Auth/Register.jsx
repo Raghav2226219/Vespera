@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import api from "../../api/axios";
 import VesperaHologram from "../../components/VesperaHologram";
 
@@ -17,6 +17,22 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [allowSignups, setAllowSignups] = useState(true);
+  const [fetchingStatus, setFetchingStatus] = useState(true);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await api.get("/config/status");
+        setAllowSignups(res.data.allowSignups !== false);
+      } catch (err) {
+        setAllowSignups(true);
+      } finally {
+        setFetchingStatus(false);
+      }
+    };
+    fetchStatus();
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -93,163 +109,193 @@ const Register = () => {
           <VesperaHologram />
         </div>
 
-        {/* Title */}
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(190,255,150,0.4)]"
-        >
-          Create Your Vespera Account
-        </motion.h1>
-
-        {/* Scanning Line */}
-        <motion.div
-          className="w-[65%] h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent rounded-full overflow-hidden"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
+        {fetchingStatus ? (
+          <div className="py-20 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-lime-400"></div>
+          </div>
+        ) : !allowSignups ? (
           <motion.div
-            className="h-full w-[18%] bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
-            animate={{ x: ["-10%", "100%"] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </motion.div>
-
-        {/* Form */}
-        <motion.form
-          onSubmit={handleSubmit}
-          className="relative mt-4 bg-[rgba(10,26,22,0.55)] border border-lime-400/25 backdrop-blur-2xl rounded-3xl shadow-[0_0_40px_rgba(190,255,150,0.2)] px-8 py-7 w-full text-left space-y-5"
-          whileHover={{
-            boxShadow:
-              "0 0 50px rgba(255,255,150,0.15), inset 0 0 10px rgba(190,255,150,0.2)",
-          }}
-        >
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-rose-200 bg-rose-700/30 px-3 py-2 rounded-lg text-center"
-            >
-              {error}
-            </motion.div>
-          )}
-
-          {/* Inputs Row 1 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="text-xs text-white/60">Full Name</span>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
-                placeholder="John Doe"
-              />
-            </label>
-
-            <label className="block">
-              <span className="text-xs text-white/60">Email</span>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
-                placeholder="you@vespera.com"
-              />
-            </label>
-          </div>
-
-          {/* Inputs Row 2 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="text-xs text-white/60">Phone Number</span>
-              <input
-                name="phonenumber"
-                type="tel"
-                value={form.phonenumber}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
-                placeholder="+91 9876543210"
-              />
-            </label>
-
-            <label className="block">
-              <span className="text-xs text-white/60">Role</span>
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-lime-400/40"
-              >
-                <option value="" className="text-black">
-                  Select role
-                </option>
-                <option value="Owner" className="text-black">
-                  Owner
-                </option>
-                <option value="Editor" className="text-black">
-                  Editor
-                </option>
-                <option value="Viewer" className="text-black">
-                  Viewer
-                </option>
-              </select>
-            </label>
-          </div>
-
-          {/* Password */}
-          <label className="block">
-            <span className="text-xs text-white/60">Password</span>
-            <div className="relative mt-1">
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2 text-lime-200/70 hover:text-yellow-100 transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative z-10 max-w-md w-full bg-[#0b1914]/80 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-8 text-center shadow-[0_0_50px_rgba(245,158,11,0.2)]"
+          >
+            <div className="w-20 h-20 mx-auto bg-amber-500/10 rounded-full flex items-center justify-center mb-6 border border-amber-500/20">
+              <AlertTriangle className="w-10 h-10 text-amber-500" />
             </div>
-          </label>
+            
+            <h1 className="text-3xl font-bold text-white mb-2">Registration Disabled</h1>
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              New sign ups are currently not available. Please try again later or contact an administrator if you need an account.
+            </p>
+            
+            <Link
+              to="/login"
+              className="inline-block mt-4 py-3 px-8 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20"
+            >
+              Back to Login
+            </Link>
+          </motion.div>
+        ) : (
+          <>
+            {/* Title */}
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-200 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(190,255,150,0.4)]"
+            >
+              Create Your Vespera Account
+            </motion.h1>
 
-          {/* Submit */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            disabled={loading}
-            className="w-full mt-4 py-3 rounded-xl text-gray-900 font-semibold 
-                       bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 
-                       hover:shadow-[0_0_35px_rgba(190,255,150,0.4)]
-                       transition-all duration-300"
-            type="submit"
-          >
-            {loading ? "Creating Account..." : "Create Account"}
-          </motion.button>
-        </motion.form>
+            {/* Scanning Line */}
+            <motion.div
+              className="w-[65%] h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent rounded-full overflow-hidden"
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <motion.div
+                className="h-full w-[18%] bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
+                animate={{ x: ["-10%", "100%"] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
 
-        <p className="text-sm text-white/60">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-lime-300 font-semibold hover:underline"
-          >
-            Sign In
-          </Link>
-        </p>
+            {/* Form */}
+            <motion.form
+              onSubmit={handleSubmit}
+              className="relative mt-4 bg-[rgba(10,26,22,0.55)] border border-lime-400/25 backdrop-blur-2xl rounded-3xl shadow-[0_0_40px_rgba(190,255,150,0.2)] px-8 py-7 w-full text-left space-y-5"
+              whileHover={{
+                boxShadow:
+                  "0 0 50px rgba(255,255,150,0.15), inset 0 0 10px rgba(190,255,150,0.2)",
+              }}
+            >
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-rose-200 bg-rose-700/30 px-3 py-2 rounded-lg text-center"
+                >
+                  {error}
+                </motion.div>
+              )}
+
+              {/* Inputs Row 1 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs text-white/60">Full Name</span>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                    placeholder="John Doe"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs text-white/60">Email</span>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                    placeholder="you@vespera.com"
+                  />
+                </label>
+              </div>
+
+              {/* Inputs Row 2 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs text-white/60">Phone Number</span>
+                  <input
+                    name="phonenumber"
+                    type="tel"
+                    value={form.phonenumber}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                    placeholder="+91 9876543210"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs text-white/60">Role</span>
+                  <select
+                    name="role"
+                    value={form.role}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                  >
+                    <option value="" className="text-black">
+                      Select role
+                    </option>
+                    <option value="Owner" className="text-black">
+                      Owner
+                    </option>
+                    <option value="Editor" className="text-black">
+                      Editor
+                    </option>
+                    <option value="Viewer" className="text-black">
+                      Viewer
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              {/* Password */}
+              <label className="block">
+                <span className="text-xs text-white/60">Password</span>
+                <div className="relative mt-1">
+                  <input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-lime-400/40"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2 text-lime-200/70 hover:text-yellow-100 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </label>
+
+              {/* Submit */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                disabled={loading}
+                className="w-full mt-4 py-3 rounded-xl text-gray-900 font-semibold 
+                           bg-gradient-to-r from-emerald-400 via-lime-300 to-yellow-300 
+                           hover:shadow-[0_0_35px_rgba(190,255,150,0.4)]
+                           transition-all duration-300"
+                type="submit"
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+              </motion.button>
+            </motion.form>
+
+            <p className="text-sm text-white/60">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-lime-300 font-semibold hover:underline"
+              >
+                Sign In
+              </Link>
+            </p>
+          </>
+        )}
       </motion.div>
     </div>
   );

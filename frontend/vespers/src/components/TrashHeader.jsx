@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,12 @@ const TrashHeader = ({
 }) => {
   const navigate = useNavigate();
   const closeTimeoutRef = useRef(null);
+
+  const [localSearch, setLocalSearch] = useState(search);
+
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
 
   const handleSort = (value) => {
     setSortOption(value);
@@ -149,19 +155,29 @@ const TrashHeader = ({
         </div>
 
         {/* 🔍 Search Bar */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-lime-300/70 w-5 h-5" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search trashed boards..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/10 border border-lime-400/20
-                       text-lime-100 placeholder-lime-200/40
-                       backdrop-blur-md shadow-inner
-                       focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:border-lime-400/50
-                       transition duration-300"
-          />
+        <div className="flex items-center gap-2 relative w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-lime-300/70 w-5 h-5 pointer-events-none" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setSearch(localSearch)}
+              placeholder="Search trashed boards..."
+              className="w-full pl-10 pr-4 py-[10px] rounded-xl bg-white/10 border border-lime-400/20
+                         text-lime-100 placeholder-lime-200/40
+                         backdrop-blur-md shadow-inner
+                         focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:border-lime-400/50
+                         transition duration-300 h-[42px]"
+            />
+          </div>
+          <button
+            onClick={() => setSearch(localSearch)}
+            className="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-r from-lime-500/20 to-yellow-500/20 border border-yellow-400/30 text-yellow-200 hover:from-lime-500/40 hover:to-yellow-500/40 transition-all shadow-md group"
+            title="Search"
+          >
+            <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          </button>
         </div>
       </div>
     </header>

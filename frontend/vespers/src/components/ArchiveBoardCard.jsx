@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { MoreVertical } from "lucide-react";
 import api from "../api/axios";
@@ -23,6 +24,7 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
   const menuButtonRef = useRef(null);
   const [processing, setProcessing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -57,6 +59,11 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
     if (processing) return;
 
     const id = board._id || board.id;
+
+    if (action === "info") {
+      navigate(`/board-details/${id}`);
+      return;
+    }
 
     if (action === "restore") {
       try {
@@ -173,8 +180,18 @@ const ArchiveBoardCard = ({ board, onActionComplete, showToastMessage }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
-                className="w-44 rounded-xl bg-[#0d1c15]/90 border border-lime-400/20 shadow-xl backdrop-blur-xl overflow-hidden"
+                className="w-44 rounded-xl bg-[#0d1c15]/90 border border-lime-400/20 shadow-xl backdrop-blur-xl overflow-hidden py-1"
               >
+                <button
+                  disabled={processing}
+                  onClick={(e) => {
+                     e.stopPropagation();
+                     handleMenuAction("info");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-blue-300 hover:bg-blue-500/10 transition"
+                >
+                  ℹ️ Info
+                </button>
                 <button
                   disabled={processing}
                   onClick={(e) => {

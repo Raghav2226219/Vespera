@@ -36,6 +36,7 @@ import PlatformSettings from "./pages/admin/PlatformSettings";
 import SystemLogs from "./pages/admin/SystemLogs";
 import MaintenancePage from "./pages/MaintenancePage";
 import SuspendedPage from "./pages/SuspendedPage";
+import PremiumPlans from "./pages/PremiumPlans";
 
 function App() {
   const [maintenance, setMaintenance] = useState(false);
@@ -165,6 +166,7 @@ const AnimatedRoutes = () => {
             <Route path="/board-audits" element={<BoardAuditsPage />} />
             <Route path="/task-audits" element={<TaskAuditsPage />} />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />
+            <Route path="/premium-plans" element={<PremiumPlans />} />
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />

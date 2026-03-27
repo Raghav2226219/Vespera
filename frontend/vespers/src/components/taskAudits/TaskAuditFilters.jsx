@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ArrowLeft } from "lucide-react";
+import { ChevronDown, ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GlassDatePicker from "../inviteAudits/GlassDatePicker";
 
@@ -225,16 +225,25 @@ const TaskAuditFilters = ({
         <label className="text-xs text-yellow-100/80 mb-1 block">
           Search (user, board, task, action)
         </label>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onBlur={resetAndRefetch}
-          placeholder="e.g., Alice, Task Name, Created"
-          className="w-full bg-white/10 border border-yellow-400/20 rounded-xl px-4 py-[10px]
-                     text-yellow-100 placeholder-yellow-200/40
-                     focus:outline-none focus:ring-2 focus:ring-yellow-400/40 
-                     backdrop-blur-md transition duration-300 h-[42px]"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && resetAndRefetch()}
+            placeholder="e.g., Alice, Task Name, Created"
+            className="w-full bg-white/10 border border-yellow-400/20 rounded-xl px-4 py-[10px]
+                       text-yellow-100 placeholder-yellow-200/40
+                       focus:outline-none focus:ring-2 focus:ring-yellow-400/40 
+                       backdrop-blur-md transition duration-300 h-[42px]"
+          />
+          <button
+            onClick={resetAndRefetch}
+            className="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-r from-lime-500/20 to-yellow-500/20 border border-yellow-400/30 text-yellow-200 hover:from-lime-500/40 hover:to-yellow-500/40 transition-all shadow-md group"
+            title="Search"
+          >
+            <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
       </div>
 
       {/* 📅 Date Range */}

@@ -40,11 +40,18 @@ exports.sendVerificationOTP = async (req, res) => {
       },
     });
 
+    // Accept HTML template from frontend relay
+    const { template } = req.body;
+    const finalHtml = template
+      ? template.replace("{{OTP_CODE}}", otp)
+      : `<p>Your OTP is: ${otp}</p>`;
+
     // Send OTP email
     await sendEmail({
       to: user.email,
-      subject: "Your Email Verification OTP",
+      subject: "Vespera - Secure Email Verification",
       text: `Your OTP is: ${otp}. It expires in 5 minutes.`,
+      html: finalHtml,
     });
 
     return res.json({ message: "OTP sent successfully" });

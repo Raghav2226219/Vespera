@@ -4,13 +4,14 @@ const { PrismaPg } = require("@prisma/adapter-pg");
 
 const connectionString = process.env.DATABASE_URL;
 
+// Neon serverless postgres requires distinct settings to prevent premature termination.
+// Using connectionTimeoutMillis can cause 'Connection terminated due to connection timeout'
+// if the proxy takes too long to wake up the compute endpoint.
 const pool = new Pool({
   connectionString,
-  max: 5,                  // limit concurrent connections (Neon free tier is limited)
-  idleTimeoutMillis: 30000, // release idle connections after 30s (before server kills them)
-  connectionTimeoutMillis: 10000, // fail fast if a connection takes >10s
-  keepAlive: true,         // send TCP keepalives to detect dead connections early
-  keepAliveInitialDelayMillis: 10000,
+  max: 5,                   // limit concurrent connections (Neon free tier is limited)
+  idleTimeoutMillis: 30000, // release idle connections after 30s
+  allowExitOnIdle: true,
 });
 
 // Reconnect automatically if a pool error occurs (prevents server crash)

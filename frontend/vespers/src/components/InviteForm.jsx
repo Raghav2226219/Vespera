@@ -5,12 +5,29 @@ import { Mail, UserPlus, Hash } from "lucide-react";
 import api from "../api/axios";
 
 const InviteForm = ({ onSuccess }) => {
+  // Replace old boardId state and handle boards fetching
   const [boardId, setBoardId] = useState("");
+  const [boards, setBoards] = useState([]);
+  const [showBoards, setShowBoards] = useState(false);
+  
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Viewer");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [showRoles, setShowRoles] = useState(false);
+
+  // Fetch Boards for Dropdown
+  React.useEffect(() => {
+    const fetchBoards = async () => {
+      try {
+        const res = await api.get("/board/all", { withCredentials: true });
+        setBoards(Array.isArray(res.data) ? res.data : res.data.boards || []);
+      } catch (err) {
+        console.error("Error fetching boards:", err);
+      }
+    };
+    fetchBoards();
+  }, []);
 
   const handleInvite = async (e) => {
     e.preventDefault();
@@ -18,7 +35,7 @@ const InviteForm = ({ onSuccess }) => {
     setMessage(null);
 
     if (!boardId) {
-      setMessage({ type: "error", text: "Board ID required" });
+      setMessage({ type: "error", text: "Please select a board" });
       setLoading(false);
       return;
     }
@@ -77,29 +94,92 @@ const InviteForm = ({ onSuccess }) => {
         initial="hidden"
         animate="visible"
       >
-        {/* 🪄 Board ID Input */}
+        {/* 🪄 Board Selection Dropdown */}
         <motion.div variants={formItemVariants} custom={1}>
           <label className="block text-yellow-300 font-semibold mb-2">
-            Board ID
+            Select Board
           </label>
-          <div className="relative">
-            <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-300/70 w-5 h-5" />
-            <input
-              type="number"
-              required
-              placeholder="Enter board ID"
-              value={boardId}
-              onChange={(e) => setBoardId(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl 
-                         bg-white/10 border border-yellow-400/30
-                         text-lime-100 placeholder-yellow-200/50
-                         focus:outline-none focus:ring-2 focus:ring-yellow-400/60 
-                         focus:border-yellow-400/50 backdrop-blur-md
-                         transition-all duration-300 shadow-inner
-                         [appearance:textfield] 
-                         [&::-webkit-outer-spin-button]:appearance-none 
-                         [&::-webkit-inner-spin-button]:appearance-none"
-            />
+          
+          <div
+            className="relative"
+            onMouseEnter={() => clearTimeout(window.closeBoardTimer)}
+            onMouseLeave={() => {
+              window.closeBoardTimer = setTimeout(() => setShowBoards(false), 200);
+            }}
+          >
+            {/* Dropdown Button */}
+            <motion.button
+              type="button"
+              onClick={() => setShowBoards((prev) => !prev)}
+              whileTap={{ scale: 0.97 }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl
+                         bg-gradient-to-r from-lime-950/50 via-emerald-950/30 to-yellow-950/30
+                         border border-yellow-400/30 text-lime-100 font-medium
+                         shadow-inner shadow-lime-900/30 backdrop-blur-md
+                         hover:shadow-[0_0_15px_rgba(255,255,150,0.25)]
+                         focus:outline-none transition-all duration-300"
+            >
+              <div className="flex items-center gap-3 truncate">
+                <Hash className="w-5 h-5 text-yellow-300/70 shrink-0" />
+                <span className="truncate">
+                  {boardId
+                    ? boards.find((b) => String(b.id) === String(boardId))?.title || "Board Not Found"
+                    : "Choose a Board"}
+                </span>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-5 h-5 text-yellow-300/80 transition-transform duration-300 shrink-0 ${
+                  showBoards ? "rotate-180" : ""
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </motion.button>
+
+            {/* Dropdown List */}
+            <AnimatePresence>
+              {showBoards && (
+                <motion.ul
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="absolute mt-2 w-full bg-gradient-to-b from-[#0b1914]/95 via-[#132d1f]/90 to-[#1a3a29]/95
+                             border border-yellow-400/25 rounded-xl backdrop-blur-2xl 
+                             shadow-[0_0_25px_rgba(255,255,150,0.15)] overflow-hidden z-[999]
+                             max-h-60 overflow-y-auto no-scrollbar"
+                >
+                  {boards.length === 0 ? (
+                    <li className="px-4 py-3 text-sm text-yellow-200/50 italic text-center">
+                      No active boards available
+                    </li>
+                  ) : (
+                    boards.map((b) => (
+                      <motion.li
+                        key={b.id}
+                        onClick={() => {
+                          setBoardId(b.id);
+                          setShowBoards(false);
+                        }}
+                        whileHover={{ scale: 1.01 }}
+                        className={`px-4 py-2.5 text-sm cursor-pointer transition-all duration-200 truncate ${
+                          String(boardId) === String(b.id)
+                            ? "bg-gradient-to-r from-lime-400/30 to-yellow-300/30 text-yellow-200"
+                            : "text-lime-100 hover:bg-white/10 hover:text-yellow-100"
+                        }`}
+                      >
+                        {b.title}
+                      </motion.li>
+                    ))
+                  )}
+                </motion.ul>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 

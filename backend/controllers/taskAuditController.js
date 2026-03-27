@@ -113,11 +113,12 @@ const getAllTaskAudits = async (req, res) => {
     };
 
     if (boardId) {
+      const parsedBoardId = parseInt(boardId);
       // Verify user is member of this specific board
-      if (!userBoardIds.includes(parseInt(boardId))) {
+      if (!userBoardIds.includes(parsedBoardId)) {
         return res.status(403).json({ message: "Not authorized for this board" });
       }
-      where.boardId = parseInt(boardId);
+      where.boardId = parsedBoardId;
     }
 
     if (action) {
@@ -133,10 +134,7 @@ const getAllTaskAudits = async (req, res) => {
     if (search) {
       where.OR = [
         { actor: { name: { contains: search, mode: "insensitive" } } },
-        { details: { path: ['title'], string_contains: search } }, // Search in JSON details? Prisma support for JSON filtering varies.
-        // Alternatively, search task title if task exists
         { task: { title: { contains: search, mode: "insensitive" } } },
-        // Or board title
         { board: { title: { contains: search, mode: "insensitive" } } }
       ];
     }

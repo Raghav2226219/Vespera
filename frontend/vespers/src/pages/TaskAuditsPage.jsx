@@ -31,8 +31,9 @@ const TaskAuditsPage = () => {
   useEffect(() => {
     const fetchBoards = async () => {
       try {
-        const res = await API.get("/board");
-        setBoards(res.data);
+        const res = await API.get("/board/all");
+        // Ensure boards state is safely an array
+        setBoards(Array.isArray(res.data) ? res.data : res.data.boards || []);
       } catch (err) {
         console.error("Error fetching boards:", err);
       }
@@ -90,8 +91,41 @@ const TaskAuditsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1410] text-yellow-50 font-sans selection:bg-yellow-500/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="relative min-h-screen bg-gradient-to-br from-[#0b1914] via-[#132d1f] to-[#193a29] text-yellow-50 font-sans selection:bg-yellow-500/30 overflow-hidden">
+      
+      {/* ✨ Background aura + holo beams */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,160,0.06),transparent_70%)] blur-3xl animate-pulse" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-yellow-300/20 to-transparent animate-pulse" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[70%] h-[2px] bg-gradient-to-r from-transparent via-lime-400/10 to-transparent opacity-80 animate-pulse" />
+      </div>
+
+      {/* 💫 Floating particles */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1.5 h-1.5 rounded-full bg-yellow-300/40 shadow-[0_0_8px_rgba(255,255,150,0.4)] pointer-events-none z-0"
+          initial={{
+            x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 1000),
+            y: Math.random() * (typeof window !== "undefined" ? window.innerHeight : 800),
+            opacity: 0,
+            scale: 0,
+          }}
+          animate={{
+            y: [null, Math.random() * -80 - 20],
+            opacity: [0, 1, 0],
+            scale: [0.3, 1, 0.3],
+          }}
+          transition={{
+            delay: Math.random() * 2,
+            duration: 5 + Math.random() * 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <TaskAuditHeader />
 

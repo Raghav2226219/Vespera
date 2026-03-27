@@ -45,7 +45,7 @@ const checkSignupAllowed = async (req, res, next) => {
       where: { key: "allow_signups" },
     });
 
-    if (config && config.value === false) {
+    if (config && (config.value === false || config.value === "false")) {
       return res.status(403).json({ message: "New user signups are currently disabled." });
     }
 

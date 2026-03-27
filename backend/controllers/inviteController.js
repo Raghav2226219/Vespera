@@ -35,44 +35,44 @@ const createInvite = async (req, res) => {
     const link = `http://localhost:5173/accept-invite?token=${rawToken}`;
 
     const htmlContent = `
-  <div style="font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #020617, #042f2e, #064e3b); padding: 40px 0; color: #e2e8f0; text-align: center;">
-    <div style="max-width: 600px; margin: auto; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; box-shadow: 0 0 40px rgba(16, 185, 129, 0.15); backdrop-filter: blur(10px); overflow: hidden;">
+  <div style="font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0b1914, #132d1f, #193a29); padding: 50px 20px; color: #fefce8; text-align: center;">
+    <div style="max-width: 550px; margin: auto; background: rgba(17, 30, 24, 0.8); border: 1px solid rgba(250, 204, 21, 0.2); border-radius: 24px; box-shadow: 0 10px 40px rgba(163, 230, 53, 0.1); overflow: hidden;">
       
-      <div style="background: linear-gradient(135deg, rgba(4,120,87,0.6), rgba(6,182,212,0.4), rgba(15,23,42,0.7)); padding: 28px 32px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px;
-                   background: linear-gradient(to right, #34d399, #5eead4, #99f6e4);
+      <div style="background: rgba(255, 255, 255, 0.03); padding: 35px 30px; border-bottom: 1px solid rgba(250, 204, 21, 0.1);">
+        <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+                   background: linear-gradient(to right, #facc15, #a3e635, #4ade80);
                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                   text-shadow: 0 0 15px rgba(6,182,212,0.3);">
-          You’ve Been Invited to <span style="color:#6ee7b7;">Vespera</span> 🌱
+                   text-shadow: 0 0 20px rgba(250, 204, 21, 0.3);">
+          Welcome to Vespera 🌙
         </h1>
       </div>
 
-      <div style="padding: 36px 28px;">
-        <p style="font-size: 16px; color: #d1fae5; margin-bottom: 14px;">Hey there 👋,</p>
-        <p style="font-size: 16px; color: #a7f3d0; line-height: 1.6; margin-bottom: 28px;">
-          You’ve been invited to collaborate on a <strong style="color: #6ee7b7;">Vespera Board</strong> 
-          as a <b style="color: #99f6e4;">${role || "Member"}</b>.
-          Step into the flow — manage, create, and grow together 🌿
+      <div style="padding: 40px 30px;">
+        <p style="font-size: 17px; color: #d9f99d; margin-bottom: 16px; font-weight: 500;">Hello there, 👋</p>
+        <p style="font-size: 16px; color: #bbf7d0; line-height: 1.6; margin-bottom: 35px;">
+          You have been invited to collaborate on a <strong style="color: #facc15;">Vespera Board</strong> 
+          as a <b style="color: #a3e635;">${role || "Member"}</b>.<br><br>
+          Join your team to manage tasks, create ideas, and grow together.
         </p>
 
-        <div style="margin: 40px 0;">
+        <div style="margin: 35px 0;">
           <a href="${link}"
-            style="display: inline-block; background: linear-gradient(to right, #10b981, #06b6d4);
-                   color: #0f172a; text-decoration: none; font-weight: 600; padding: 14px 32px;
-                   border-radius: 12px; box-shadow: 0 0 25px rgba(6,182,212,0.4);
-                   transition: all 0.3s ease;">
-            Accept Invite
+            style="display: inline-block; background: linear-gradient(to right, #facc15, #a3e635);
+                   color: #064e3b; text-decoration: none; font-weight: 700; font-size: 16px; padding: 16px 36px;
+                   border-radius: 14px; box-shadow: 0 4px 20px rgba(250, 204, 21, 0.4);
+                   text-transform: uppercase; letter-spacing: 0.5px;">
+            Accept Invitation
           </a>
         </div>
 
-        <p style="font-size: 14px; color: #86efac;">This link expires in 7 days.</p>
+        <p style="font-size: 13px; color: #86efac; font-style: italic;">This link securely expires in 7 days.</p>
       </div>
 
-      <div style="height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"></div>
+      <div style="height: 1px; background: linear-gradient(to right, transparent, rgba(250, 204, 21, 0.2), transparent);"></div>
 
-      <div style="padding: 18px; font-size: 13px; color: #94a3b8; background: rgba(2,6,23,0.6);">
-        <p style="margin: 0;">If you didn’t expect this invitation, you can safely ignore it.</p>
-        <p style="margin-top: 8px;">© 2025 Vespera — Built to Create, Together 🌙</p>
+      <div style="padding: 24px; font-size: 12px; color: #64748b; background: rgba(2, 6, 23, 0.5);">
+        <p style="margin: 0;">If you weren't expecting this invitation, you can safely ignore this email.</p>
+        <p style="margin-top: 10px;">© 2025 Vespera — Built to Create, Together.</p>
       </div>
     </div>
   </div>

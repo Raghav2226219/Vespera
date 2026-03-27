@@ -14,6 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 import VesperaHologram from "../../components/VesperaHologram";
+import { OtpEmailHtml } from "../../templates/OtpEmailTemplate";
 
 /* ---------------------- small helpers ---------------------- */
 const float = (d = 6, y = 10, x = 6) => ({
@@ -197,7 +198,7 @@ export default function ProfileMe() {
   const sendOtp = async () => {
     try {
       setOtpSending(true);
-      await api.post("/send");
+      await api.post("/email-verification/send", { template: OtpEmailHtml });
       setOtpModalOpen(true);
     } catch (err) {
       console.error(err);
@@ -209,7 +210,7 @@ export default function ProfileMe() {
 
   /* VERIFY OTP */
   const verifyOtp = async (otp) => {
-    await api.post("/email/verify", { otp });
+    await api.post("/email-verification/verify", { otp });
     setOtpModalOpen(false);
 
     const { data } = await api.get("/profile/me");

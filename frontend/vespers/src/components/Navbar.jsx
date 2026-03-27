@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LogOut, Bell, User, Menu } from "lucide-react";
+import { LogOut, Bell, User, Menu, Crown } from "lucide-react";
 
 const Navbar = ({
   sidebarOpen,
@@ -60,6 +60,17 @@ const Navbar = ({
             animate={{ opacity: [0.5, 1, 0.5], scale: [0.8, 1.2, 0.8] }}
             transition={{ duration: 2, repeat: Infinity }}
           />
+        </motion.button>
+
+        {/* 👑 Premium Plans */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/premium-plans")}
+          className="text-yellow-400 hover:text-yellow-300 transition drop-shadow-[0_0_8px_rgba(255,255,100,0.8)]"
+          title="Premium Plans"
+        >
+          <Crown className="w-5 h-5" />
         </motion.button>
 
         {/* 👤 Profile */}

@@ -1,7 +1,7 @@
 const prisma = require("../config/db");
 
-// ✅ In-memory cache for maintenance status (avoids hammering DB on every poll)
-let maintenanceCache = { value: false, expiresAt: 0 };
+// ✅ In-memory cache for public config (avoids hammering DB on every poll)
+let publicConfigCache = { maintenance: false, allowSignups: true, expiresAt: 0 };
 const CACHE_TTL_MS = 60_000; // 60 seconds
 
 // @desc    Get all system settings
@@ -66,6 +66,11 @@ const updateSettings = async (req, res) => {
       create: { key, value },
     });
 
+    // Invalidate public cache immediately when these settings change
+    if (key === "maintenance_mode" || key === "allow_signups") {
+      publicConfigCache.expiresAt = 0;
+    }
+
     res.json(updated);
   } catch (err) {
     console.error("Error updating settings:", err);
@@ -73,7 +78,7 @@ const updateSettings = async (req, res) => {
   }
 };
 
-// @desc    Get public system status (maintenance mode) — no auth required
+// @desc    Get public system status (maintenance mode & signups) — no auth required
 // @route   GET /api/config/status
 // @access  Public
 const getPublicStatus = async (req, res) => {
@@ -81,22 +86,35 @@ const getPublicStatus = async (req, res) => {
     const now = Date.now();
 
     // Return cached value if still fresh
-    if (now < maintenanceCache.expiresAt) {
-      return res.json({ maintenance: maintenanceCache.value });
+    if (now < publicConfigCache.expiresAt) {
+      return res.json({ 
+        maintenance: publicConfigCache.maintenance,
+        allowSignups: publicConfigCache.allowSignups
+      });
     }
 
     // Cache expired — fetch from DB
-    const config = await prisma.systemConfig.findUnique({
-      where: { key: "maintenance_mode" },
+    const configs = await prisma.systemConfig.findMany({
+      where: { key: { in: ["maintenance_mode", "allow_signups"] } }
     });
 
-    const maintenance = config ? config.value === true : false;
-    maintenanceCache = { value: maintenance, expiresAt: now + CACHE_TTL_MS };
+    let maintenance = false;
+    let allowSignups = true;
 
-    res.json({ maintenance });
+    configs.forEach(c => {
+      if (c.key === "maintenance_mode") maintenance = c.value === true || c.value === "true";
+      if (c.key === "allow_signups") allowSignups = c.value !== false && c.value !== "false";
+    });
+
+    publicConfigCache = { maintenance, allowSignups, expiresAt: now + CACHE_TTL_MS };
+
+    res.json({ maintenance, allowSignups });
   } catch (err) {
     console.error("Error fetching public status:", err);
-    res.json({ maintenance: maintenanceCache.value ?? false }); // Use cached value on error
+    res.json({ 
+      maintenance: publicConfigCache.maintenance ?? false,
+      allowSignups: publicConfigCache.allowSignups ?? true
+    }); 
   }
 };
 
