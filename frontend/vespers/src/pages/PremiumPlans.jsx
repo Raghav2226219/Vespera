@@ -159,6 +159,9 @@ const PremiumPlans = () => {
 
               {/* CTA Button */}
               <button
+                onClick={() => {
+                  if (plan.id !== "free") navigate(`/checkout/${plan.id}`);
+                }}
                 className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${plan.buttonStyle}`}
               >
                 {plan.ctaText}

@@ -1,0 +1,47 @@
+Dummy Card Testing Details
+Use these configurations to instantly trigger specific UI states, logos, and bank coloration clones on the Vespera checkout interface:
+
+=== USA ===
+Chase (Visa) Card Number: 4147 2000 1234 5678 Name: TESTER CHASE Expiry: 12/28 CVV: 123
+
+Bank of America (Visa) Card Number: 4012 8800 0000 0000
+
+Wells Fargo (Visa) Card Number: 4737 0200 1111 2222
+
+Capital One (Mastercard) Card Number: 5178 5600 0000 0000
+
+Citibank (Mastercard) Card Number: 5424 1800 1234 5678
+
+=== INDIA ===
+HDFC Bank (Visa) Card Number: 4315 8100 0000 0000
+
+State Bank of India (Visa) Card Number: 4315 2200 4444 5555
+
+ICICI Bank (Visa) Card Number: 4132 8900 1234 5678
+
+NPCI RuPay (RuPay Generic) Card Number: 6071 0000 0000 0000
+
+=== UK ===
+Barclays (Visa) Card Number: 4539 7800 0000 0000
+
+HSBC (Visa) Card Number: 4400 6600 1234 5678
+
+=== CANADA ===
+RBC Royal Bank (Visa) Card Number: 4500 0300 1111 2222
+
+TD Bank (Visa) Card Number: 4536 7600 0000 0000
+
+=== AUSTRALIA ===
+CommBank (Mastercard) Card Number: 5353 1600 1234 5678
+
+Westpac (Visa) Card Number: 4564 2600 0000 0000
+
+=== MISC ===
+N26 (Germany) Card Number: 5166 4800 1234 5678
+
+Nubank (Brazil) Card Number: 5502 0900 0000 0000
+
+SMBC (Japan) Card Number: 4213 1600 1234 5678
+
+BBVA (Mexico) Card Number: 4152 3100 1111 2222
+
