@@ -1,3 +1,6 @@
+// admin = 12345
+// normal = 1234
+
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";

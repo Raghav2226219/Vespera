@@ -23,6 +23,31 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Fill all fields" });
     }
 
+    // --- NEW LOGIC: enforcing password policy --
+    const pwdConfig = await prisma.systemConfig.findUnique({
+      where: { key: "password_policy" }
+    });
+
+    let minLength = 8;
+    let requireSpecialChar = false;
+
+    if (pwdConfig && pwdConfig.value) {
+      minLength = pwdConfig.value.minLength || 8;
+      requireSpecialChar = !!pwdConfig.value.requireSpecialChar;
+    }
+
+    if (password.length < minLength) {
+      return res.status(400).json({ message: `Password must be at least ${minLength} characters long.` });
+    }
+
+    if (requireSpecialChar) {
+      const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+      if (!specialCharRegex.test(password)) {
+        return res.status(400).json({ message: "Password must contain at least one special character." });
+      }
+    }
+    // ------------------------------------------
+
     const existUser = await prisma.User.findUnique({ where: { email } });
     if (existUser) return res.status(400).json({ message: "User already exists!!" });
 

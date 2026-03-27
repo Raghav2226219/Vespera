@@ -8,6 +8,7 @@ import MembersListModal from "../components/MembersListModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { useSocket } from "../context/SocketContext";
+import { AlertCircle } from "lucide-react";
 
 const BoardPage = () => {
   const { boardId } = useParams();
@@ -20,9 +21,45 @@ const BoardPage = () => {
   const [newTask, setNewTask] = useState({ title: "", description: "" });
   const [creating, setCreating] = useState(false);
 
+  // Custom Toast State
+  const [toast, setToast] = useState({ show: false, message: "" });
+  const showCustomToast = (message) => {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: "" }), 4000);
+  };
+
   const lastStableColumns = useRef([]);
   // Tracks task IDs that this client is currently moving (to suppress own socket echo)
   const pendingMoves = useRef(new Set());
+
+  // Rate Limiting State
+  const [lockoutTime, setLockoutTime] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  // Formatting function for MM:SS
+  const formatTime = (ms) => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    let interval;
+    if (lockoutTime > Date.now()) {
+      interval = setInterval(() => {
+        const remaining = lockoutTime - Date.now();
+        if (remaining <= 0) {
+          setLockoutTime(0);
+          setTimeLeft(0);
+          clearInterval(interval);
+        } else {
+          setTimeLeft(remaining);
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [lockoutTime]);
 
   const fetchBoard = useCallback(async () => {
     try {
@@ -153,8 +190,10 @@ const BoardPage = () => {
   // ✅ Create new task
   const handleCreateTask = async (e) => {
     e.preventDefault();
+    if (lockoutTime > Date.now()) return;
+
     if (!newTask.title.trim()) {
-      alert("Task title is required.");
+      showCustomToast("Task title is required.");
       return;
     }
 
@@ -166,7 +205,7 @@ const BoardPage = () => {
       );
 
       if (!todoColumn) {
-        alert('No "To Do" column found.');
+        showCustomToast('No "To Do" column found.');
         setCreating(false);
         return;
       }
@@ -183,7 +222,14 @@ const BoardPage = () => {
       setNewTask({ title: "", description: "" });
     } catch (err) {
       console.error("Error creating task:", err);
-      alert("Failed to create task.");
+      if (err.response?.status === 429 && err.response?.data?.retryAfterMs) {
+        const retryMs = err.response.data.retryAfterMs;
+        setLockoutTime(Date.now() + retryMs);
+        setTimeLeft(retryMs);
+        showCustomToast(`Rate limit reached. You can create a new task in ${formatTime(retryMs)}.`);
+      } else {
+        showCustomToast(err.response?.data?.message || "Failed to create task.");
+      }
     } finally {
       setCreating(false);
     }
@@ -403,13 +449,23 @@ const BoardPage = () => {
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-lime-500/80 to-emerald-600/80 border border-lime-400/50 text-white font-bold tracking-wide hover:from-lime-400 hover:to-emerald-500 hover:shadow-[0_0_20px_rgba(150,255,100,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm shadow-[0_0_15px_rgba(150,255,100,0.2)]"
-                  >
-                    {creating ? "Creating..." : "✦ Create Task"}
-                  </button>
+                  {lockoutTime > Date.now() ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="px-6 py-2.5 rounded-xl bg-gray-600 border border-gray-500 text-gray-400 font-bold tracking-wide cursor-not-allowed transition-all duration-300 text-sm opacity-60 flex items-center justify-center min-w-[140px]"
+                    >
+                      Wait ({formatTime(timeLeft)})
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-lime-500/80 to-emerald-600/80 border border-lime-400/50 text-white font-bold tracking-wide hover:from-lime-400 hover:to-emerald-500 hover:shadow-[0_0_20px_rgba(150,255,100,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm shadow-[0_0_15px_rgba(150,255,100,0.2)] flex items-center justify-center min-w-[140px]"
+                    >
+                      {creating ? "Creating..." : "✦ Create Task"}
+                    </button>
+                  )}
                 </div>
               </form>
             </motion.div>
@@ -423,6 +479,21 @@ const BoardPage = () => {
         onClose={() => setShowMembersModal(false)}
         members={board?.members || []}
       />
+
+      {/* Custom Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[2000] flex items-center gap-3 bg-rose-500/10 border border-rose-500/50 backdrop-blur-xl px-6 py-4 rounded-3xl shadow-[0_0_40px_rgba(244,63,94,0.3)] text-white pointer-events-none"
+          >
+            <AlertCircle className="w-6 h-6 text-rose-500 filter drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+            <span className="text-sm font-semibold tracking-wide whitespace-nowrap">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

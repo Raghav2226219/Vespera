@@ -8,6 +8,66 @@ const createTask = async (req, res) => {
 
     if (!title) return res.status(400).json({ message: "Task title is required." });
 
+    // --- NEW LOGIC: Max Board Size Verification ---
+    const totalTasks = await prisma.task.count({
+      where: { column: { boardId: parseInt(boardId) } }
+    });
+
+    const maxBoardSizeConfig = await prisma.systemConfig.findUnique({
+      where: { key: "max_board_size" }
+    });
+    
+    // Default max board size is 100 if not found
+    const maxTasks = maxBoardSizeConfig ? parseInt(maxBoardSizeConfig.value, 10) : 100;
+
+    if (totalTasks >= maxTasks) {
+      return res.status(403).json({ 
+        message: `Max board size reached. You cannot add more than ${maxTasks} tasks to this board.` 
+      });
+    }
+
+    // --- NEW LOGIC: Task Rate Limit Verification ---
+    if (req.user.role !== "Admin") {
+      const rateLimitsConfig = await prisma.systemConfig.findUnique({
+        where: { key: "rate_limits" }
+      });
+
+      // Default: max 100 tasks per 15 mins
+      let maxRateTasks = 100;
+      let windowMs = 15 * 60 * 1000;
+
+      if (rateLimitsConfig && rateLimitsConfig.value) {
+        maxRateTasks = rateLimitsConfig.value.max || 100;
+        windowMs = rateLimitsConfig.value.windowMs || 15 * 60 * 1000;
+      }
+
+      const windowStart = new Date(Date.now() - windowMs);
+
+      // Get the user's task creations within the window in ascending order
+      const recentTasks = await prisma.taskAudit.findMany({
+        where: {
+          actorId: req.user.id,
+          action: "created",
+          createdAt: { gte: windowStart }
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { createdAt: true }
+      });
+
+      if (recentTasks.length >= maxRateTasks) {
+        // Calculate when the oldest task falls out of the window
+        const oldestTaskTime = recentTasks[0].createdAt.getTime();
+        const retryAfterMs = oldestTaskTime + windowMs - Date.now();
+
+        return res.status(429).json({
+          message: "You are creating tasks too quickly. Please wait.",
+          retryAfterMs: retryAfterMs > 0 ? retryAfterMs : windowMs
+        });
+      }
+    }
+    // ---------------------------------------------
+    // ---------------------------------------------
+
     const todoColumn = await prisma.column.findFirst({
       where: {
         boardId: parseInt(boardId),
